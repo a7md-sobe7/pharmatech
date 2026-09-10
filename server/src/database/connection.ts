@@ -25,6 +25,9 @@ export async function connectDB(): Promise<void> {
       await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
       console.log('✅ Connected to MongoDB successfully.');
     } else {
+      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        throw new Error('MONGO_URI is required in production/Vercel environments. Please add it to your environment variables.');
+      }
       console.log(`No MONGO_URI set — starting persistent local MongoDB at ${PERSISTENT_DB_PATH}...`);
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       mongod = await MongoMemoryServer.create({
@@ -41,7 +44,12 @@ export async function connectDB(): Promise<void> {
     // Seed only if the DB is empty (won't overwrite existing shortage entries)
     await seedDatabaseIfEmpty();
     } catch (error: any) {
-    console.warn(`MongoDB connection failed (${error.message}). Retrying with fresh in-memory fallback...`);
+    console.warn(`MongoDB connection failed (${error.message}).`);
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+      console.error('❌ Failed to start MongoDB on Vercel:', error);
+      throw error;
+    }
+    console.log('Retrying with fresh in-memory fallback...');
     try {
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       mongod = await MongoMemoryServer.create({

@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  // @ts-ignore: import.meta.env is injected by Vite
+  baseURL: import.meta.env?.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },

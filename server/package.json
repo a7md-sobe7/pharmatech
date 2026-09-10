@@ -5,8 +5,8 @@
   "description": "PharmaMatch AI Backend API and Deterministic Similarity Engine",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsc && node dist/server.js",
-    "build": "tsc",
+    "dev": "npx tsc && node dist/server.js",
+    "build": "npx tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,6 +25,7 @@
     "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.12.1",
     "morgan": "^1.10.0",
+    "serverless-http": "^4.0.0",
     "winston": "^3.17.0",
     "zod": "^3.24.2"
   },
