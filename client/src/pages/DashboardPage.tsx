@@ -69,9 +69,8 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="bento-grid grid grid-cols-1 lg:grid-cols-3 gap-4">
-
       {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 1: Hero Search (spans 2 cols)
+          WIDGET 5: Hero Search (spans 2 cols)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="lg:col-span-2 gradient-blue rounded-2xl p-6 text-white relative overflow-hidden">
         {/* Background decoration */}
@@ -112,73 +111,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 2: Live Shortages Feed (spans 1 col, 2 rows)
-          ═══════════════════════════════════════════════════════════════ */}
-      <div className="lg:row-span-2 bento-card flex flex-col !p-0 overflow-hidden">
-        {/* Header */}
-        <div className="gradient-red px-5 py-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" />
-              <h2 className="font-bold text-sm">نواقص — Live Shortages</h2>
-            </div>
-            {totalShortages > 0 && (
-              <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-bold">
-                {totalShortages}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Feed list */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-          {shortages.length > 0 ? (
-            shortages.map((item: any, i: number) => {
-              const st = statusLabel(item.status);
-              return (
-                <div key={item._id || i} className="px-4 py-3 hover:bg-slate-50/50 transition">
-                  <div className="flex items-start gap-2.5">
-                    <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${urgencyColor(item.urgency)}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{item.medicineName}</p>
-                      {item.medicineNameAr && (
-                        <p className="text-[11px] text-slate-500 truncate">{item.medicineNameAr}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${st.cls}`}>
-                          {st.text}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          Need {item.neededQuantity} · Have {item.currentQuantity}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-              <Package className="w-8 h-8 mb-2 opacity-30" />
-              <p className="text-xs">No active shortages</p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-slate-100 px-4 py-3">
-          <button
-            onClick={() => navigate('/shortages')}
-            className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
-          >
-            <span>View All Shortages</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 3: Quick Stats (4 mini tiles in a 2×2 grid)
+          WIDGET 2: Quick Stats (4 mini tiles in a 2×2 grid)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="bento-card">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Pharmacy Overview</h3>
@@ -201,7 +134,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 4: Quick Actions
+          WIDGET 3: Quick Actions
           ═══════════════════════════════════════════════════════════════ */}
       <div className="bento-card">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
@@ -231,7 +164,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 5: Recent Activity (spans 2 cols)
+          WIDGET 4: Recent Activity (spans 2 cols)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="lg:col-span-2 bento-card">
         <div className="flex items-center justify-between mb-4">
@@ -270,27 +203,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 6: Clinical Safety Note
-          ═══════════════════════════════════════════════════════════════ */}
-      <div className="bento-card gradient-subtle-blue !border-blue-200/60">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-4 h-4 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-xs font-bold text-blue-900 uppercase tracking-wide">Safety Protocol</h3>
-            <p className="text-[11px] text-blue-800/80 mt-1 leading-relaxed">
-              All similarity results are based on primary active ingredient analysis. Final substitution decisions must be validated by a licensed pharmacist.
-            </p>
-            <p className="text-[11px] text-blue-700/60 mt-1.5 leading-relaxed" style={{ fontFamily: 'Arial' }}>
-              جميع نتائج التشابه تعتمد على تحليل المادة الفعالة الأساسية. يجب أن يتم التحقق من قرارات الاستبدال النهائية بواسطة صيدلي مرخص.
-            </p>
-          </div>
-        </div>
-      </div>
-
+      
     </div>
   );
 };
