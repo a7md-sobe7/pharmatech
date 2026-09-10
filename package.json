@@ -1,6 +1,7 @@
 {
   "name": "pharmamatch-ai-root",
   "version": "1.0.0",
+  "type": "module",
   "description": "PharmaMatch AI - Production-grade Pharmacy Intelligence & Deterministic Similarity Platform",
   "private": true,
   "workspaces": [
