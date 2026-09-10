@@ -4,11 +4,18 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { seedDatabaseIfEmpty } from '../seeds/index.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const getDirname = () => {
+  try {
+    return path.dirname(fileURLToPath(import.meta.url));
+  } catch (e) {
+    return process.cwd();
+  }
+};
+const _dirname = getDirname();
 
 // Persistent local data folder: server/data/db
 // This folder survives server restarts so all shortage entries are kept.
-const PERSISTENT_DB_PATH = path.resolve(__dirname, '../../data/db');
+const PERSISTENT_DB_PATH = path.resolve(_dirname, '../../data/db');
 
 let mongod: MongoMemoryServer | null = null;
 
