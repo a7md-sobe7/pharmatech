@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Navbar } from './components/layout/Navbar';
-import { Sidebar } from './components/layout/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
 import { SearchPage } from './pages/SearchPage';
 import { CatalogPage } from './pages/CatalogPage';
@@ -27,22 +26,19 @@ export const App: React.FC = () => {
       <AuthProvider>
         <LanguageProvider>
           <BrowserRouter>
-            <div className="min-h-screen flex flex-col bg-[#F7F9FC]">
+            <div className="min-h-screen flex flex-col bg-slate-50">
               <Navbar />
-              <div className="flex-1 flex max-w-7xl w-full mx-auto">
-                <Sidebar />
-                <main className="flex-1 p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
-                  <Routes>
-                    <Route path="/" element={<DashboardPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/catalog" element={<CatalogPage />} />
-                    <Route path="/inventory" element={<InventoryPage />} />
-                    <Route path="/shortages" element={<ShortagesPage />} />
-                    <Route path="/admin" element={<AdminPage />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </main>
-              </div>
+              <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 overflow-y-auto">
+                <Routes>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/catalog" element={<CatalogPage />} />
+                  <Route path="/inventory" element={<InventoryPage />} />
+                  <Route path="/shortages" element={<ShortagesPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </main>
             </div>
           </BrowserRouter>
         </LanguageProvider>

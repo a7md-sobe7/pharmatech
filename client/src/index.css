@@ -1,48 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-[#F7F9FC] text-slate-800 antialiased font-sans;
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
 
-/* Custom Scrollbars */
+/* ─── Custom Scrollbars ─────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Pulse Glow & Animations */
-@keyframes subtle-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+/* ─── Bento Card Base ───────────────────────────────────────────────── */
+.bento-card {
+  @apply bg-white rounded-2xl border border-slate-200/80 p-5 transition-all duration-200;
+}
+.bento-card:hover {
+  @apply border-slate-300 shadow-sm;
 }
 
-.animate-subtle-pulse {
-  animation: subtle-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* ─── Gradient Utilities ────────────────────────────────────────────── */
+.gradient-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
+}
+.gradient-red {
+  background: linear-gradient(135deg, #f43f5e 0%, #dc2626 100%);
+}
+.gradient-mixed {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #f43f5e 100%);
+}
+.gradient-subtle-blue {
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+}
+.gradient-subtle-red {
+  background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);
 }
 
-/* Card Hover Elevation */
-.card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* ─── Subtle Animations ─────────────────────────────────────────────── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
 }
 
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(11, 35, 69, 0.08), 0 8px 10px -6px rgba(11, 35, 69, 0.04);
+/* Staggered children animation */
+.bento-grid > * {
+  animation: fade-in-up 0.4s ease-out both;
 }
+.bento-grid > *:nth-child(1) { animation-delay: 0ms; }
+.bento-grid > *:nth-child(2) { animation-delay: 60ms; }
+.bento-grid > *:nth-child(3) { animation-delay: 120ms; }
+.bento-grid > *:nth-child(4) { animation-delay: 180ms; }
+.bento-grid > *:nth-child(5) { animation-delay: 240ms; }
+.bento-grid > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ─── Removed (kept as no-ops for backward compat) ──────────────────── */
+.animate-subtle-pulse {}
+.card-hover {}

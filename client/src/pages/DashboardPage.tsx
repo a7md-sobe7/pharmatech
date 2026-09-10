@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
-import { 
-  Package, 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Search, 
-  ArrowRight, 
-  Activity, 
-  Pill,
-  Sparkles,
-  ShieldCheck,
-  TrendingUp
+import {
+  Package, AlertTriangle, CheckCircle2, XCircle,
+  Search, ArrowRight, Pill, Activity,
+  Plus, Clock, Flame, Check
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -24,31 +15,33 @@ export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>({
     totalProducts: 15,
     availableCount: 11,
-    lowStockCount: 2,
     outOfStockCount: 5,
     expiredCount: 1,
     totalUnits: 340,
-    totalValue: 24500,
-    currency: 'EGP'
   });
+  const [shortages, setShortages] = useState<any[]>([]);
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [shortageStats, setShortageStats] = useState<any>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchData = async () => {
       try {
-        const [statsRes, logsRes]: any = await Promise.all([
+        const [statsRes, logsRes, shortagesRes, shortageStatsRes]: any = await Promise.all([
           apiClient.get('/inventory/stats'),
-          apiClient.get('/audit/logs?limit=6')
+          apiClient.get('/audit/logs?limit=5'),
+          apiClient.get('/shortages?limit=6'),
+          apiClient.get('/shortages/stats'),
         ]);
         if (statsRes.success) setStats(statsRes.data);
         if (logsRes.success) setRecentLogs(logsRes.data.logs || []);
+        if (shortagesRes.success) setShortages(shortagesRes.data.items || []);
+        if (shortageStatsRes.success) setShortageStats(shortageStatsRes.data);
       } catch (err) {
-        // use default stats
+        // use defaults
       }
     };
-    fetchDashboardData();
+    fetchData();
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -58,189 +51,244 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  const quickScenarios = [
-    { name: 'Calmag', arabic: 'كالماج', tag: 'Out of Stock', match: 'Calcium Primary Match (Calcitron, Osteocare)' },
-    { name: 'Augmentin 1g', arabic: 'أوجمنتين 1 جم', tag: 'Out of Stock', match: 'Amoxicillin Match (Curam, Megamox, Hibiotic)' },
-    { name: 'Panadol Extra', arabic: 'بنادول اكسترا', tag: 'Out of Stock', match: 'Paracetamol + Caffeine (Cetal Extra, Abimol Extra)' },
-    { name: 'Concor 5mg', arabic: 'كونكور 5 مج', tag: 'Out of Stock', match: 'Bisoprolol 5mg (Bisocard, Bisotens)' },
-    { name: 'Cataflam 50mg', arabic: 'كتافلام 50 مج', tag: 'Out of Stock', match: 'Diclofenac Match (Voltaren, Declophen)' },
-    { name: 'Controloc 40mg', arabic: 'كونترولوك 40 مج', tag: 'Out of Stock', match: 'Pantoprazole Match (Pantozol, Zurcal)' },
-  ];
+  const urgencyColor = (u: string) => {
+    if (u === 'CRITICAL') return 'bg-red-500';
+    if (u === 'HIGH') return 'bg-orange-500';
+    return 'bg-amber-400';
+  };
+
+  const statusLabel = (s: string) => {
+    if (s === 'RESOLVED') return { text: 'Resolved', cls: 'text-emerald-600 bg-emerald-50' };
+    if (s === 'ORDERED') return { text: 'Ordered', cls: 'text-blue-600 bg-blue-50' };
+    return { text: 'Pending', cls: 'text-slate-600 bg-slate-100' };
+  };
+
+  const totalShortages = shortageStats
+    ? shortageStats.byCritical + shortageStats.byHigh + shortageStats.byMedium
+    : shortages.length;
 
   return (
-    <div className="space-y-6">
-      
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-navy-900 via-navy-800 to-medical-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none flex items-center pr-8">
-          <Pill className="w-64 h-64 text-white" />
+    <div className="bento-grid grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 1: Hero Search (spans 2 cols)
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="lg:col-span-2 gradient-blue rounded-2xl p-6 text-white relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute -right-8 -bottom-8 opacity-10">
+          <Pill className="w-40 h-40" />
         </div>
 
-        <div className="max-w-2xl relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-medical-500/20 text-medical-200 border border-medical-400/30 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-medical-300" />
-            <span>AI-Assisted Deterministic Pharmacy Intelligence</span>
+        <div className="relative z-10 space-y-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Find Drug Alternatives Instantly
+            </h1>
+            <p className="text-blue-100 text-sm mt-1">
+              Search any out-of-stock medication to discover clinically verified substitutions based on active ingredients.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Verify Medication Similarity with Clinical Provenance
-          </h1>
-          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-            When a requested medication is out of stock, PharmaMatch AI extracts its primary active ingredient, calculates multi-factor similarity, cross-references shelf inventory, and presents available alternatives for pharmacist validation.
-          </p>
 
-          {/* Quick Search Box */}
-          <form onSubmit={handleSearchSubmit} className="pt-2 flex gap-2">
+          <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search unavailable product (e.g. Calmag, Augmentin, كالماج)..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/10 backdrop-blur border border-white/20 text-white placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-medical-400 focus:bg-white/15 transition"
+                placeholder="Search drug name (e.g. Augmentin, كالماج)..."
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/15 backdrop-blur border border-white/25 text-white placeholder:text-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 transition"
               />
             </div>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-medical-500 hover:bg-medical-600 font-bold text-sm text-white shadow-md transition flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition flex items-center gap-2 shadow-sm"
             >
-              <span>Analyze</span>
+              <span>Search</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        
-        {/* Total Stock */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase">{t('metric.totalDrugs', 'Drug Catalog')}</span>
-            <Package className="w-4 h-4 text-medical-600" />
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 2: Live Shortages Feed (spans 1 col, 2 rows)
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="lg:row-span-2 bento-card flex flex-col !p-0 overflow-hidden">
+        {/* Header */}
+        <div className="gradient-red px-5 py-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              <h2 className="font-bold text-sm">نواقص — Live Shortages</h2>
+            </div>
+            {totalShortages > 0 && (
+              <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-bold">
+                {totalShortages}
+              </span>
+            )}
           </div>
-          <p className="text-2xl font-bold text-navy-900">{stats.totalProducts}</p>
-          <p className="text-[11px] text-slate-500 mt-1">Total active registered monographs</p>
         </div>
 
-        {/* Available In Stock */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase">{t('metric.availableStock', 'In Stock')}</span>
-            <CheckCircle className="w-4 h-4 text-emerald-600" />
-          </div>
-          <p className="text-2xl font-bold text-emerald-600">{stats.availableCount}</p>
-          <p className="text-[11px] text-slate-500 mt-1">{stats.totalUnits} available units on shelves</p>
+        {/* Feed list */}
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          {shortages.length > 0 ? (
+            shortages.map((item: any, i: number) => {
+              const st = statusLabel(item.status);
+              return (
+                <div key={item._id || i} className="px-4 py-3 hover:bg-slate-50/50 transition">
+                  <div className="flex items-start gap-2.5">
+                    <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${urgencyColor(item.urgency)}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{item.medicineName}</p>
+                      {item.medicineNameAr && (
+                        <p className="text-[11px] text-slate-500 truncate">{item.medicineNameAr}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${st.cls}`}>
+                          {st.text}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Need {item.neededQuantity} · Have {item.currentQuantity}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+              <Package className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-xs">No active shortages</p>
+            </div>
+          )}
         </div>
 
-        {/* Out of Stock */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase">{t('metric.outOfStock', 'Out of Stock')}</span>
-            <XCircle className="w-4 h-4 text-rose-600" />
-          </div>
-          <p className="text-2xl font-bold text-rose-600">{stats.outOfStockCount}</p>
-          <p className="text-[11px] text-slate-500 mt-1">Requires similarity lookup</p>
+        {/* Footer */}
+        <div className="border-t border-slate-100 px-4 py-3">
+          <button
+            onClick={() => navigate('/shortages')}
+            className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+          >
+            <span>View All Shortages</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
-
-        {/* Expired / Quarantine */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs card-hover">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold uppercase">{t('metric.expired', 'Expired Filtered')}</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
-          </div>
-          <p className="text-2xl font-bold text-amber-600">{stats.expiredCount}</p>
-          <p className="text-[11px] text-slate-500 mt-1">Strictly blocked from candidates</p>
-        </div>
-
       </div>
 
-      {/* Two Column Layout: Quick Test Scenarios & Real-Time Audit Log Stream */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Quick Clinical Test Scenarios */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-bold text-navy-900 text-sm">Key Clinical Substitution Test Scenarios</h2>
-              <p className="text-xs text-slate-500">Click any product to inspect out-of-stock primary ingredient matching</p>
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 3: Quick Stats (4 mini tiles in a 2×2 grid)
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="bento-card">
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Pharmacy Overview</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Drug Catalog', value: stats.totalProducts, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'In Stock', value: stats.availableCount, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'Out of Stock', value: stats.outOfStockCount, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+            { label: 'Shortages', value: totalShortages, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <div key={label} className={`${bg} rounded-xl p-3 flex flex-col gap-1`}>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-slate-500 uppercase">{label}</span>
+                <Icon className={`w-3.5 h-3.5 ${color}`} />
+              </div>
+              <span className={`text-xl font-bold ${color}`}>{value}</span>
             </div>
-            <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-slate-100 text-slate-600 rounded">
-              Ready to Demo
-            </span>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {quickScenarios.map((sc, i) => (
-              <div
-                key={i}
-                onClick={() => navigate(`/search?q=${encodeURIComponent(sc.name)}`)}
-                className="p-3.5 rounded-xl border border-slate-200 hover:border-medical-400 bg-slate-50/50 hover:bg-medical-50/20 cursor-pointer transition flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 text-sm group-hover:text-medical-600 transition">
-                      {sc.name} <span className="text-xs font-normal text-slate-500">({sc.arabic})</span>
-                    </span>
-                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase bg-rose-50 text-rose-700 border border-rose-200 rounded">
-                      {sc.tag}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1.5 leading-tight">{sc.match}</p>
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 4: Quick Actions
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="bento-card">
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
+        <div className="space-y-2.5">
+          <button
+            onClick={() => navigate('/shortages')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl gradient-red text-white text-sm font-semibold hover:opacity-90 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Report New Shortage</span>
+          </button>
+          <button
+            onClick={() => navigate('/search')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl gradient-blue text-white text-sm font-semibold hover:opacity-90 transition"
+          >
+            <Search className="w-4 h-4" />
+            <span>Run Similarity Search</span>
+          </button>
+          <button
+            onClick={() => navigate('/catalog')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition"
+          >
+            <Pill className="w-4 h-4" />
+            <span>Browse Drug Catalog</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 5: Recent Activity (spans 2 cols)
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="lg:col-span-2 bento-card">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-800">Recent Activity</h3>
+          </div>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        </div>
+
+        {recentLogs.length > 0 ? (
+          <div className="space-y-2">
+            {recentLogs.map((log: any, i: number) => (
+              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 text-xs">
+                <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                  <Clock className="w-3.5 h-3.5 text-blue-600" />
                 </div>
-                <div className="mt-3 flex items-center text-[11px] font-semibold text-medical-600 group-hover:translate-x-1 transition-transform">
-                  <span>Run Similarity Analysis</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-800 truncate">
+                    {log.action?.replace('_', ' ') || 'Activity'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 truncate">
+                    {log.target || 'System'}
+                  </p>
                 </div>
+                <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                  {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Live Security & Audit Trail */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold text-navy-900 text-sm flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-medical-600" />
-                <span>Recent Audit Activity</span>
-              </h2>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">Real-time search & similarity lookups</p>
-
-            <div className="mt-3 space-y-2.5">
-              {recentLogs.length > 0 ? (
-                recentLogs.map((log, i) => (
-                  <div key={i} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-xs">
-                    <div className="flex items-center justify-between font-semibold text-slate-800">
-                      <span>{log.action.replace('_', ' ')}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                      Target: <span className="text-navy-900 font-medium">{log.target || 'System'}</span>
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="py-8 text-center text-xs text-slate-400">
-                  No activity recorded yet. Run a search to generate audit records.
-                </div>
-              )}
-            </div>
+        ) : (
+          <div className="text-center py-8 text-slate-400">
+            <Activity className="w-6 h-6 mx-auto mb-2 opacity-30" />
+            <p className="text-xs">No recent activity. Run a search to generate records.</p>
           </div>
+        )}
+      </div>
 
-          <button
-            onClick={() => navigate('/admin')}
-            className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition"
-          >
-            View Full Audit Logs
-          </button>
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 6: Clinical Safety Note
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="bento-card gradient-subtle-blue !border-blue-200/60">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-blue-900 uppercase tracking-wide">Safety Protocol</h3>
+            <p className="text-[11px] text-blue-800/80 mt-1 leading-relaxed">
+              All similarity results are based on primary active ingredient analysis. Final substitution decisions must be validated by a licensed pharmacist.
+            </p>
+            <p className="text-[11px] text-blue-700/60 mt-1.5 leading-relaxed" style={{ fontFamily: 'Arial' }}>
+              جميع نتائج التشابه تعتمد على تحليل المادة الفعالة الأساسية. يجب أن يتم التحقق من قرارات الاستبدال النهائية بواسطة صيدلي مرخص.
+            </p>
+          </div>
         </div>
-
       </div>
 
     </div>

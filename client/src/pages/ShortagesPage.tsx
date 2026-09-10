@@ -69,7 +69,7 @@ const UrgencyBadge: React.FC<UrgencyBadgeProps> = ({ urgency, pulse }) => {
   const m = URGENCY_META[urgency];
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider border ${m.bg} ${m.color} ${m.border}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${m.dot} ${pulse && urgency === 'CRITICAL' ? 'animate-pulse' : ''}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${m.dot}`} />
       {m.label}
     </span>
   );
@@ -257,12 +257,12 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-red-600 to-orange-500 px-6 py-4 flex items-center justify-between">
+        <div className="gradient-mixed px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-white">
             <AlertTriangle className="w-5 h-5" />
-            <h2 className="font-extrabold text-base tracking-tight">
+            <h2 className="font-bold text-base tracking-tight">
               {mode === 'add' ? 'إضافة نقص جديد' : 'تعديل النقص'}
-              <span className="block text-white/70 text-[11px] font-normal mt-0.5">
+              <span className="block text-slate-400 text-[11px] font-normal mt-0.5">
                 {mode === 'add' ? 'Add new shortage entry' : 'Edit shortage entry'}
               </span>
             </h2>
@@ -368,7 +368,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
               })}
             </div>
             <div className={`mt-2 text-[11px] px-3 py-1.5 rounded-lg ${u.bg} ${u.color} flex items-center gap-1.5`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${u.dot} ${form.urgency === 'CRITICAL' ? 'animate-pulse' : ''}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${u.dot}`} />
               {form.urgency === 'CRITICAL' && 'Critical shortage — immediate action required'}
               {form.urgency === 'HIGH' && 'High priority — order soon'}
               {form.urgency === 'MEDIUM' && 'Medium — monitor and plan order'}
@@ -387,7 +387,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
             <button
               type="submit"
               disabled={saving || !form.medicineName || form.neededQuantity < 1}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-orange-500 text-white text-sm font-bold shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-xl gradient-blue text-white text-sm font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving…' : mode === 'add' ? 'Add Shortage' : 'Save Changes'}
             </button>
@@ -503,8 +503,8 @@ export const ShortagesPage: React.FC = () => {
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-md">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl gradient-red flex items-center justify-center">
               <AlertTriangle className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -516,7 +516,7 @@ export const ShortagesPage: React.FC = () => {
         <button
           id="add-shortage-btn"
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-orange-500 text-white text-sm font-bold shadow-md hover:opacity-90 transition shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-blue text-white text-sm font-bold hover:opacity-90 transition shrink-0"
         >
           <Plus className="w-4 h-4" />
           إضافة نقص &nbsp;/ Add Shortage
@@ -527,18 +527,18 @@ export const ShortagesPage: React.FC = () => {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Critical', labelAr: 'حرج', count: stats.byCritical, icon: Flame, color: 'from-red-500 to-red-600', text: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200' },
-            { label: 'High', labelAr: 'عالي', count: stats.byHigh, icon: ShieldAlert, color: 'from-orange-400 to-orange-500', text: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200' },
-            { label: 'Medium', labelAr: 'متوسط', count: stats.byMedium, icon: Minus, color: 'from-amber-400 to-amber-500', text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' },
-            { label: 'Resolved', labelAr: 'محلول', count: stats.resolved, icon: CheckCircle2, color: 'from-emerald-400 to-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-          ].map(({ label, labelAr, count, icon: Icon, color, text, bg, border }) => (
-            <div key={label} className={`rounded-2xl border ${border} ${bg} p-4 flex items-center gap-3`}>
-              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-sm shrink-0`}>
-                <Icon className="w-4 h-4 text-white" />
+            { label: 'Critical', labelAr: 'حرج', count: stats.byCritical, icon: Flame, text: 'text-red-700' },
+            { label: 'High', labelAr: 'عالي', count: stats.byHigh, icon: ShieldAlert, text: 'text-orange-700' },
+            { label: 'Medium', labelAr: 'متوسط', count: stats.byMedium, icon: Minus, text: 'text-amber-700' },
+            { label: 'Resolved', labelAr: 'محلول', count: stats.resolved, icon: CheckCircle2, text: 'text-emerald-700' },
+          ].map(({ label, labelAr, count, icon: Icon, text }) => (
+            <div key={label} className={`rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3`}>
+              <div className={`w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0`}>
+                <Icon className={`w-4 h-4 ${text}`} />
               </div>
               <div>
-                <div className={`text-2xl font-extrabold ${text}`}>{count}</div>
-                <div className={`text-[11px] font-semibold ${text} opacity-80`}>{label} <span className="font-arabic">/ {labelAr}</span></div>
+                <div className={`text-2xl font-bold ${text}`}>{count}</div>
+                <div className={`text-[11px] font-semibold text-slate-500 uppercase tracking-wider`}>{label} <span className="font-arabic">/ {labelAr}</span></div>
               </div>
             </div>
           ))}
@@ -548,7 +548,7 @@ export const ShortagesPage: React.FC = () => {
       {/* ── Alert Banner (if critical items exist) ── */}
       {stats && stats.byCritical > 0 && (
         <div className="flex items-center gap-3 bg-red-50 border border-red-300 rounded-2xl px-4 py-3">
-          <Flame className="w-5 h-5 text-red-600 shrink-0 animate-pulse" />
+          <Flame className="w-5 h-5 text-red-600 shrink-0" />
           <p className="text-sm text-red-700 font-semibold">
             <span className="font-extrabold">{stats.byCritical} critical shortage{stats.byCritical > 1 ? 's' : ''}</span> require immediate attention.
             {' '}<span style={{ fontFamily: 'Arial' }}>{stats.byCritical} نقص حرج يحتاج تدخل فوري.</span>
@@ -606,7 +606,7 @@ export const ShortagesPage: React.FC = () => {
       </div>
 
       {/* ── Shortages Table ── */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         {loading && items.length === 0 ? (
           <div className="flex items-center justify-center py-20 text-slate-400 gap-3">
             <RefreshCw className="w-5 h-5 animate-spin" />
