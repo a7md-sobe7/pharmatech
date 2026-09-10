@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { IShortage, IShortageStats, IDrugReference, ShortageUrgency, ShortageStatus } from '../types/shortage';
+import { useLanguage } from '../context/LanguageContext';
 
 // ─── Drug Reference DB (loaded once from bundled JSON) ──────────────────────
 // We import only the fields we need via a fetch to avoid bundling 8 MB
@@ -213,6 +214,7 @@ interface ShortageModalProps {
 }
 
 const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, onSave }) => {
+  const { t } = useLanguage();
   const [form, setForm] = useState<ModalForm>({ ...EMPTY_FORM, ...initial });
   const [saving, setSaving] = useState(false);
   const [userOverrodeUrgency, setUserOverrodeUrgency] = useState(false);
@@ -261,10 +263,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
           <div className="flex items-center gap-2 text-white">
             <AlertTriangle className="w-5 h-5" />
             <h2 className="font-bold text-base tracking-tight">
-              {mode === 'add' ? 'إضافة نقص جديد' : 'تعديل النقص'}
-              <span className="block text-slate-400 text-[11px] font-normal mt-0.5">
-                {mode === 'add' ? 'Add new shortage entry' : 'Edit shortage entry'}
-              </span>
+              {mode === 'add' ? t('shortages.modal.addTitle', 'Report New Shortage') : t('shortages.modal.editTitle', 'Edit Shortage Record')}
             </h2>
           </div>
           <button
@@ -280,7 +279,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
           {/* 1. Medicine Name — Autocomplete */}
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-              Medicine Name <span className="text-red-500">*</span>
+              {t('shortages.modal.medName', 'Medicine Name')} <span className="text-red-500">*</span>
             </label>
             {mode === 'add' ? (
               <DrugAutocomplete
@@ -301,7 +300,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
           {form.concentration && (
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-                Concentration / Form
+                {t('shortages.modal.concentration', 'Concentration / Form')}
               </label>
               <div className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-xs text-slate-600">
                 {form.concentration}
@@ -312,7 +311,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
           {/* 3. Current Quantity */}
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-              Current Quantity on Shelf
+              {t('shortages.modal.currentQty', 'Current Quantity on Shelf')}
             </label>
             <input
               id="shortage-current-qty"
@@ -327,7 +326,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
           {/* 4. Needed Quantity */}
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-              Needed Quantity (to order) <span className="text-red-500">*</span>
+              {t('shortages.modal.neededQty', 'Needed Quantity (to order)')} <span className="text-red-500">*</span>
             </label>
             <input
               id="shortage-needed-qty"
@@ -338,14 +337,14 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
             />
             <p className="text-[11px] text-slate-400 mt-1">
-              Urgency is auto-suggested based on this quantity
+              {t('shortages.modal.urgencyHint', 'Urgency is auto-suggested based on this quantity')}
             </p>
           </div>
 
           {/* 5. Urgency */}
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-              Urgency
+              {t('shortages.modal.urgency', 'Urgency Level')}
             </label>
             <div className="flex gap-2">
               {(['MEDIUM', 'HIGH', 'CRITICAL'] as ShortageUrgency[]).map((lvl) => {
@@ -362,16 +361,16 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
                     className={`flex-1 py-2 rounded-xl border text-xs font-bold uppercase tracking-wide transition
                       ${isActive ? `${m.bg} ${m.color} ${m.border} shadow-sm` : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
                   >
-                    {lvl}
+                    {t(`urgency.${lvl.toLowerCase()}`, lvl)}
                   </button>
                 );
               })}
             </div>
             <div className={`mt-2 text-[11px] px-3 py-1.5 rounded-lg ${u.bg} ${u.color} flex items-center gap-1.5`}>
               <span className={`w-1.5 h-1.5 rounded-full ${u.dot}`} />
-              {form.urgency === 'CRITICAL' && 'Critical shortage — immediate action required'}
-              {form.urgency === 'HIGH' && 'High priority — order soon'}
-              {form.urgency === 'MEDIUM' && 'Medium — monitor and plan order'}
+              {form.urgency === 'CRITICAL' && t('shortages.modal.criticalDesc', 'Critical shortage — immediate action required')}
+              {form.urgency === 'HIGH' && t('shortages.modal.highDesc', 'High priority — order soon')}
+              {form.urgency === 'MEDIUM' && t('shortages.modal.mediumDesc', 'Medium — monitor and plan order')}
             </div>
           </div>
 
@@ -382,14 +381,14 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
               onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button
               type="submit"
               disabled={saving || !form.medicineName || form.neededQuantity < 1}
               className="flex-1 py-2.5 rounded-xl gradient-blue text-white text-sm font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving…' : mode === 'add' ? 'Add Shortage' : 'Save Changes'}
+              {saving ? t('common.saving', 'Saving…') : mode === 'add' ? t('shortages.modal.submitAdd', 'Add Shortage') : t('shortages.modal.submitSave', 'Save Changes')}
             </button>
           </div>
         </form>
@@ -400,6 +399,7 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export const ShortagesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [items, setItems] = useState<IShortage[]>([]);
   const [stats, setStats] = useState<IShortageStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -508,8 +508,8 @@ export const ShortagesPage: React.FC = () => {
               <AlertTriangle className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="block leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>نواقص</span>
-              <span className="block text-sm font-normal text-slate-500 -mt-0.5">Danger Zone — Low Stock Tracker</span>
+              <span className="block leading-tight font-bold">{t('shortages.title', 'Pharmacy Shortages (نواقص)')}</span>
+              <span className="block text-sm font-normal text-slate-500 -mt-0.5">{t('shortages.subtitle', 'Real-time drug shortages tracking, urgency prioritization, and replacement requests')}</span>
             </div>
           </h1>
         </div>
@@ -519,7 +519,7 @@ export const ShortagesPage: React.FC = () => {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-blue text-white text-sm font-bold hover:opacity-90 transition shrink-0"
         >
           <Plus className="w-4 h-4" />
-          إضافة نقص &nbsp;/ Add Shortage
+          <span>{t('shortages.reportBtn', 'Report Shortage')}</span>
         </button>
       </div>
 
@@ -527,18 +527,18 @@ export const ShortagesPage: React.FC = () => {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Critical', labelAr: 'حرج', count: stats.byCritical, icon: Flame, text: 'text-red-700' },
-            { label: 'High', labelAr: 'عالي', count: stats.byHigh, icon: ShieldAlert, text: 'text-orange-700' },
-            { label: 'Medium', labelAr: 'متوسط', count: stats.byMedium, icon: Minus, text: 'text-amber-700' },
-            { label: 'Resolved', labelAr: 'محلول', count: stats.resolved, icon: CheckCircle2, text: 'text-emerald-700' },
-          ].map(({ label, labelAr, count, icon: Icon, text }) => (
+            { label: t('urgency.critical', 'Critical'), count: stats.byCritical, icon: Flame, text: 'text-red-700' },
+            { label: t('urgency.high', 'High'), count: stats.byHigh, icon: ShieldAlert, text: 'text-orange-700' },
+            { label: t('urgency.medium', 'Medium'), count: stats.byMedium, icon: Minus, text: 'text-amber-700' },
+            { label: t('status.resolved', 'Resolved'), count: stats.resolved, icon: CheckCircle2, text: 'text-emerald-700' },
+          ].map(({ label, count, icon: Icon, text }) => (
             <div key={label} className={`rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3`}>
               <div className={`w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0`}>
                 <Icon className={`w-4 h-4 ${text}`} />
               </div>
               <div>
                 <div className={`text-2xl font-bold ${text}`}>{count}</div>
-                <div className={`text-[11px] font-semibold text-slate-500 uppercase tracking-wider`}>{label} <span className="font-arabic">/ {labelAr}</span></div>
+                <div className={`text-[11px] font-semibold text-slate-500 uppercase tracking-wider`}>{label}</div>
               </div>
             </div>
           ))}
@@ -550,8 +550,7 @@ export const ShortagesPage: React.FC = () => {
         <div className="flex items-center gap-3 bg-red-50 border border-red-300 rounded-2xl px-4 py-3">
           <Flame className="w-5 h-5 text-red-600 shrink-0" />
           <p className="text-sm text-red-700 font-semibold">
-            <span className="font-extrabold">{stats.byCritical} critical shortage{stats.byCritical > 1 ? 's' : ''}</span> require immediate attention.
-            {' '}<span style={{ fontFamily: 'Arial' }}>{stats.byCritical} نقص حرج يحتاج تدخل فوري.</span>
+            <span className="font-extrabold">{stats.byCritical} {t('urgency.critical', 'critical')}</span> {t('shortages.stats.critical', 'shortages require immediate attention.')}
           </p>
         </div>
       )}
@@ -560,13 +559,13 @@ export const ShortagesPage: React.FC = () => {
       <div className="flex flex-wrap items-center gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search medicine…"
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
+            placeholder={t('shortages.searchPlaceholder', 'Search shortages list...')}
+            className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
           />
         </div>
 
@@ -578,7 +577,7 @@ export const ShortagesPage: React.FC = () => {
               onClick={() => setFilterUrgency(u)}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${filterUrgency === u ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              {u === 'ALL' ? 'All' : u}
+              {u === 'ALL' ? t('common.all', 'All') : t(`urgency.${u.toLowerCase()}`, u)}
             </button>
           ))}
         </div>
@@ -591,7 +590,7 @@ export const ShortagesPage: React.FC = () => {
               onClick={() => setFilterStatus(s)}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${filterStatus === s ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              {s === 'ALL' ? 'All' : s}
+              {s === 'ALL' ? t('common.all', 'All') : t(`status.${s.toLowerCase()}`, s)}
             </button>
           ))}
         </div>
@@ -610,31 +609,30 @@ export const ShortagesPage: React.FC = () => {
         {loading && items.length === 0 ? (
           <div className="flex items-center justify-center py-20 text-slate-400 gap-3">
             <RefreshCw className="w-5 h-5 animate-spin" />
-            <span className="text-sm">Loading shortages…</span>
+            <span className="text-sm">{t('common.loading', 'Loading…')}</span>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Package className="w-12 h-12 mb-3 opacity-30" />
-            <p className="text-sm font-medium">No shortage entries found</p>
-            <p className="text-xs mt-1 opacity-70">لا توجد نواقص مسجلة</p>
+            <p className="text-sm font-medium">{t('shortages.empty', 'No shortage entries found')}</p>
             <button
               onClick={() => setShowAdd(true)}
               className="mt-4 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold hover:bg-red-100 transition"
             >
-              + Add first shortage
+              + {t('shortages.reportBtn', 'Report Shortage')}
             </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left rtl:text-right text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="py-3 px-4">Medicine</th>
-                  <th className="py-3 px-4">Urgency</th>
-                  <th className="py-3 px-4">On Shelf</th>
-                  <th className="py-3 px-4">To Order</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4">{t('shortages.table.medicine', 'Medicine')}</th>
+                  <th className="py-3 px-4">{t('shortages.table.urgency', 'Urgency')}</th>
+                  <th className="py-3 px-4">{t('inventory.table.quantity', 'Available Stock')}</th>
+                  <th className="py-3 px-4">{t('shortages.table.needed', 'Needed Qty')}</th>
+                  <th className="py-3 px-4">{t('shortages.table.status', 'Status')}</th>
+                  <th className="py-3 px-4 text-right rtl:text-left">{t('common.actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -760,8 +758,8 @@ export const ShortagesPage: React.FC = () => {
                 <Trash2 className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-800">Delete Entry?</h3>
-                <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h3 className="font-extrabold text-slate-800">{t('shortages.delete.title', 'Delete Entry?')}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{t('shortages.delete.desc', 'This action cannot be undone.')}</p>
               </div>
             </div>
             <p className="text-sm text-slate-600 bg-slate-50 rounded-xl px-3 py-2 mb-5 font-medium truncate">
@@ -772,14 +770,14 @@ export const ShortagesPage: React.FC = () => {
                 onClick={() => setDeleteId(null)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
               >
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
                 className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition disabled:opacity-60"
               >
-                {deleting ? 'Deleting…' : 'Yes, Delete'}
+                {deleting ? t('common.loading', 'Deleting…') : t('shortages.delete.confirm', 'Yes, Delete')}
               </button>
             </div>
           </div>

@@ -21,8 +21,10 @@ import { SimilarityBadge } from '../components/common/SimilarityBadge';
 import { ComparisonModal } from '../components/common/ComparisonModal';
 import { ProductDetailsModal } from '../components/common/ProductDetailsModal';
 import { IDrugProduct, ISimilarityResult } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 export const SearchPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
 
@@ -131,34 +133,34 @@ export const SearchPage: React.FC = () => {
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <form onSubmit={handleFormSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search medication name in English or Arabic (e.g. Calmag, كالماج, Augmentin)..."
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-transparent transition bg-slate-50/50"
+              placeholder={t('search.placeholder', 'Search medication name in English or Arabic (e.g. Calmag, كالماج, Augmentin)...')}
+              className="w-full pl-11 pr-4 rtl:pr-11 rtl:pl-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-slate-50/50"
             />
           </div>
           <button
             type="submit"
             disabled={isSearching}
-            className="px-6 py-3 bg-medical-500 hover:bg-medical-600 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-xs transition flex items-center gap-2"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-xs transition flex items-center gap-2"
           >
             {isSearching ? <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span> : <Sparkles className="w-4 h-4" />}
-            <span>Analyze Similarity</span>
+            <span>{t('dashboard.actions.runSimilarity', 'Analyze Similarity')}</span>
           </button>
         </form>
 
         {/* Quick Suggestion Chips */}
         <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-          <span className="text-slate-400 font-medium">Quick Test Inquiries:</span>
+          <span className="text-slate-400 font-medium">{t('common.quickSuggestions', 'Quick Suggestions')}:</span>
           {quickSearchSuggestions.map((s, i) => (
             <button
               key={i}
               type="button"
               onClick={() => handleSelectQuickSuggestion(s.label)}
-              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-medical-50 hover:text-medical-600 border border-slate-200 text-slate-700 font-medium transition"
+              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 text-slate-700 font-medium transition"
             >
               {s.label} <span className="text-[11px] text-slate-400 font-sans">({s.arabic})</span>
             </button>
@@ -180,7 +182,7 @@ export const SearchPage: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-white">
-                    Requested Medication
+                    {t('search.targetDrug', 'Requested Medication')}
                   </span>
                   <h2 className="text-xl font-extrabold text-navy-900">{targetProduct.productName}</h2>
                   {targetProduct.arabicName && (
@@ -197,12 +199,12 @@ export const SearchPage: React.FC = () => {
                 {targetProduct.inventory?.status === 'OUT_OF_STOCK' || targetProduct.inventory?.availableQuantity === 0 ? (
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold">
                     <PackageX className="w-4 h-4 text-rose-600" />
-                    <span>OUT OF STOCK in Pharmacy</span>
+                    <span>{t('status.outOfStock', 'OUT OF STOCK')} in Pharmacy</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold">
                     <PackageCheck className="w-4 h-4 text-emerald-600" />
-                    <span>IN STOCK ({targetProduct.inventory?.availableQuantity} Units Available)</span>
+                    <span>{t('status.available', 'IN STOCK')} ({targetProduct.inventory?.availableQuantity} {t('common.units', 'Units')})</span>
                   </div>
                 )}
 
@@ -214,7 +216,7 @@ export const SearchPage: React.FC = () => {
                   className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Monograph</span>
+                  <span>{t('search.monograph', 'Monograph')}</span>
                 </button>
               </div>
             </div>
@@ -222,11 +224,11 @@ export const SearchPage: React.FC = () => {
             {/* Extracted Primary Active Ingredient Highlight Bar */}
             <div className="p-4 bg-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-medical-50 text-medical-600 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                   <Layers className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Extracted Primary Active Ingredient</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">{t('search.activeIngredient', 'Primary Active Ingredient')}</span>
                   <p className="font-extrabold text-slate-900 text-sm">
                     {targetProduct.primaryActiveIngredient?.name} ({targetProduct.primaryActiveIngredient?.strength} {targetProduct.primaryActiveIngredient?.unit})
                   </p>
@@ -238,7 +240,7 @@ export const SearchPage: React.FC = () => {
                 <span>•</span>
                 <span>Source: {targetProduct.source}</span>
                 <span>•</span>
-                <span>Form: <strong>{targetProduct.dosageForm}</strong></span>
+                <span>{t('search.dosageForm', 'Form')}: <strong>{targetProduct.dosageForm}</strong></span>
               </div>
             </div>
           </div>
@@ -247,7 +249,7 @@ export const SearchPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-navy-900 text-base">
-                Available In-Stock Candidates ({candidates.length})
+                {t('search.alternativesFound', 'Available In-Stock Candidates')} ({candidates.length})
               </h3>
               <span className="text-xs text-slate-500">
                 (Matched by Primary Ingredient: <strong>{targetProduct.primaryActiveIngredient?.name}</strong>)
@@ -260,9 +262,9 @@ export const SearchPage: React.FC = () => {
                 type="checkbox"
                 checked={onlyAvailable}
                 onChange={(e) => setOnlyAvailable(e.target.checked)}
-                className="w-4 h-4 text-medical-500 rounded border-slate-300 focus:ring-medical-400"
+                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-400"
               />
-              <span>Filter Only Currently Available Stock</span>
+              <span>{t('search.filter.onlyAvailable', 'Filter Only Currently Available Stock')}</span>
             </label>
           </div>
 
@@ -277,7 +279,7 @@ export const SearchPage: React.FC = () => {
                 return (
                   <div
                     key={cand.candidateProductId}
-                    className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col justify-between space-y-4 hover:border-medical-300 transition-all card-hover"
+                    className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col justify-between space-y-4 hover:border-blue-300 transition-all card-hover"
                   >
                     <div>
                       
@@ -298,18 +300,18 @@ export const SearchPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           <span className="font-bold text-emerald-900">
-                            {inv?.availableQuantity || 0} Units In Stock
+                            {inv?.availableQuantity || 0} {t('common.units', 'Units In Stock')}
                           </span>
                         </div>
                         <div className="text-emerald-800 font-semibold">
-                          {inv?.price} {inv?.currency || 'EGP'} <span className="text-[10px] text-emerald-600 font-normal">({inv?.storageLocation})</span>
+                          {inv?.price} {t('common.currency', 'EGP')} <span className="text-[10px] text-emerald-600 font-normal">({inv?.storageLocation})</span>
                         </div>
                       </div>
 
                       {/* Itemized Reasons & Warnings */}
                       <div className="mt-3 space-y-1 text-xs">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                          Similarity Breakdown & Explainability:
+                          {t('search.breakdown', 'Similarity Breakdown & Explainability')}:
                         </p>
                         {cand.reasons.map((r, i) => (
                           <div key={i} className="text-emerald-700 flex items-start gap-1.5">
@@ -336,10 +338,10 @@ export const SearchPage: React.FC = () => {
                             setSelectedCandidateForComparison(cand);
                             setIsCompareModalOpen(true);
                           }}
-                          className="flex-1 py-2 px-3 bg-medical-50 hover:bg-medical-100 text-medical-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-medical-200"
+                          className="flex-1 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-blue-200"
                         >
                           <Scale className="w-3.5 h-3.5" />
-                          <span>Compare Formulations</span>
+                          <span>{t('search.compare', 'Compare Formulations')}</span>
                         </button>
 
                         <button
@@ -350,19 +352,19 @@ export const SearchPage: React.FC = () => {
                           className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5"
                         >
                           <FileText className="w-3.5 h-3.5" />
-                          <span>Details</span>
+                          <span>{t('common.view', 'Details')}</span>
                         </button>
                       </div>
 
                       {/* Pharmacist Clinical Feedback Recording */}
                       <div className="flex items-center justify-between text-[11px] bg-slate-50 p-2 rounded-xl border border-slate-200/70">
-                        <span className="text-slate-500 font-medium">Pharmacist Review:</span>
+                        <span className="text-slate-500 font-medium">{t('search.pharmacistReview', 'Pharmacist Review')}:</span>
                         
                         {feedback ? (
                           <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
                             feedback === 'USEFUL' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                           }`}>
-                            Logged: {feedback.replace('_', ' ')}
+                            {t('search.logged', 'Logged')}: {feedback.replace('_', ' ')}
                           </span>
                         ) : (
                           <div className="flex items-center gap-1">
@@ -372,7 +374,7 @@ export const SearchPage: React.FC = () => {
                               title="Mark as useful clinical candidate"
                             >
                               <ThumbsUp className="w-3 h-3" />
-                              <span>Useful</span>
+                              <span>{t('search.feedback.useful', 'Useful')}</span>
                             </button>
                             <button
                               onClick={() => handleRecordFeedback(cand.candidateProductId, p.productName, 'NOT_CLINICALLY_SUITABLE', cand.percentageScore)}
@@ -380,7 +382,7 @@ export const SearchPage: React.FC = () => {
                               title="Mark as clinically unsuitable"
                             >
                               <ThumbsDown className="w-3 h-3" />
-                              <span>Not Suitable</span>
+                              <span>{t('search.feedback.notSuitable', 'Not Suitable')}</span>
                             </button>
                           </div>
                         )}
@@ -395,9 +397,9 @@ export const SearchPage: React.FC = () => {
           ) : (
             <div className="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-2">
               <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
-              <h4 className="font-bold text-slate-800">No In-Stock Alternatives Found</h4>
+              <h4 className="font-bold text-slate-800">{t('search.noAlternatives', 'No In-Stock Alternatives Found')}</h4>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                No currently available candidate products sharing the primary active ingredient ({targetProduct.primaryActiveIngredient?.name}) were found in current inventory.
+                {t('search.noAlternatives', 'No matching alternatives found in the pharmacy stock.')}
               </p>
             </div>
           )}
@@ -406,9 +408,9 @@ export const SearchPage: React.FC = () => {
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-900">
             <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-amber-800 text-sm">Mandatory Clinical Safety Notice</p>
+              <p className="font-bold text-amber-800 text-sm">{t('search.disclaimerTitle', 'Mandatory Clinical Safety Notice')}</p>
               <p className="mt-1 leading-relaxed text-amber-900/90">
-                PharmaMatch AI identifies candidate medications based on shared primary active ingredient and deterministic structured attributes. The system <strong>does not</strong> issue autonomous prescription changes. Final substitution requires licensed pharmacist review of dosage, formulation excipients, patient renal/hepatic function, and doctor approval where mandated.
+                {t('search.disclaimerText', 'PharmaMatch AI identifies candidate medications based on shared primary active ingredient and deterministic structured attributes.')}
               </p>
             </div>
           </div>
@@ -422,9 +424,9 @@ export const SearchPage: React.FC = () => {
           <div className="w-12 h-12 rounded-2xl bg-medical-50 text-medical-600 flex items-center justify-center mx-auto">
             <Search className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-navy-900">Search for Medication</h3>
+          <h3 className="text-base font-bold text-navy-900">{t('search.emptyStateTitle', 'Search for Medication')}</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Enter the name of an unavailable medication to extract its primary active ingredient and discover available in-stock alternatives.
+            {t('search.emptyStateDesc', 'Enter the name of an unavailable medication to extract its primary active ingredient and discover available in-stock alternatives.')}
           </p>
         </div>
       )}

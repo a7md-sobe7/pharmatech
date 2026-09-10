@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'PHARMACIST' | 'STAFF';
+export type UserRole = 'ADMIN' | 'PHARMACIST' | 'STAFF' | 'MORNING_SHIFT' | 'NIGHT_SHIFT';
 export type InventoryStatus = 'AVAILABLE' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'EXPIRED' | 'DISCONTINUED';
 export type SimilarityLevel = 'VERY_HIGH' | 'HIGH' | 'MODERATE' | 'LOW' | 'NOT_SIMILAR';
 
@@ -171,3 +171,54 @@ export interface AIResponsePayload {
   safetyDisclaimer: string;
   requiresPharmacistReview: boolean;
 }
+
+export type NotificationType = 
+  | 'LOW_STOCK'
+  | 'OUT_OF_STOCK'
+  | 'EXPIRY_WARNING'
+  | 'SALE'
+  | 'ADMIN_ALERT'
+  | 'SYSTEM_ALERT'
+  | 'NEW_USER'
+  | 'SHIFT_ALERT';
+
+export type NotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
+
+export interface INotification {
+  _id: string;
+  userId?: string;
+  targetRole?: UserRole | 'ALL';
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: {
+    url?: string;
+    medicineId?: string;
+    medicineName?: string;
+    batchNumber?: string;
+    currentStock?: number;
+    minimumStock?: number;
+    daysLeft?: number;
+    [key: string]: any;
+  };
+  priority: NotificationPriority;
+  isRead: boolean;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface INotificationPreference {
+  _id?: string;
+  userId: string;
+  lowStock: boolean;
+  outOfStock: boolean;
+  expiry: boolean;
+  sales: boolean;
+  adminAlerts: boolean;
+  shiftAlerts: boolean;
+  systemAlerts: boolean;
+  enabledAll: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

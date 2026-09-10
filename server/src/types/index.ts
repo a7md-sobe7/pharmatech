@@ -1,6 +1,6 @@
 export type IngredientRole = 'PRIMARY' | 'SECONDARY' | 'SUPPORTING' | 'UNKNOWN';
 export type ConfidenceLevel = 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
-export type UserRole = 'ADMIN' | 'PHARMACIST' | 'STAFF';
+export type UserRole = 'ADMIN' | 'PHARMACIST' | 'STAFF' | 'MORNING_SHIFT' | 'NIGHT_SHIFT';
 
 export type InventoryStatus = 
   | 'AVAILABLE' 
@@ -204,3 +204,71 @@ export interface IPharmacistFeedback {
   notes?: string;
   createdAt?: Date;
 }
+
+export type NotificationType = 
+  | 'LOW_STOCK'
+  | 'OUT_OF_STOCK'
+  | 'EXPIRY_WARNING'
+  | 'SALE'
+  | 'ADMIN_ALERT'
+  | 'SYSTEM_ALERT'
+  | 'NEW_USER'
+  | 'SHIFT_ALERT';
+
+export type NotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
+
+export interface IPushSubscriptionKeys {
+  p256dh: string;
+  auth: string;
+}
+
+export interface IPushSubscription {
+  _id?: string;
+  userId: string;
+  endpoint: string;
+  keys: IPushSubscriptionKeys;
+  deviceName?: string;
+  browser?: string;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface INotification {
+  _id?: string;
+  userId?: string;
+  targetRole?: UserRole | 'ALL';
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: {
+    url?: string;
+    medicineId?: string;
+    medicineName?: string;
+    batchNumber?: string;
+    currentStock?: number;
+    minimumStock?: number;
+    expiryDays?: number;
+    [key: string]: any;
+  };
+  priority: NotificationPriority;
+  isRead: boolean;
+  expiresAt?: Date;
+  createdAt?: Date;
+}
+
+export interface INotificationPreference {
+  _id?: string;
+  userId: string;
+  lowStock: boolean;
+  outOfStock: boolean;
+  expiry: boolean;
+  sales: boolean;
+  adminAlerts: boolean;
+  shiftAlerts: boolean;
+  systemAlerts: boolean;
+  enabledAll: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+

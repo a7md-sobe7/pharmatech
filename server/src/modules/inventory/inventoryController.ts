@@ -3,6 +3,8 @@ import { PharmacyInventory } from '../../models/PharmacyInventory.js';
 import { DrugProduct } from '../../models/DrugProduct.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { logAudit } from '../../middleware/audit.js';
+import { PushNotificationService } from '../notifications/pushNotificationService.js';
+import { NotificationTemplates } from '../notifications/notificationTemplates.js';
 
 export class InventoryController {
   /**
@@ -114,6 +116,8 @@ export class InventoryController {
         throw new AppError('Inventory record not found.', 404, 'INVENTORY_NOT_FOUND');
       }
 
+      const previousAvailable = item.availableQuantity;
+
       if (quantity !== undefined) item.quantity = Math.max(0, Number(quantity));
       if (reservedQuantity !== undefined) item.reservedQuantity = Math.max(0, Number(reservedQuantity));
       if (price !== undefined) item.price = Math.max(0, Number(price));
@@ -122,6 +126,25 @@ export class InventoryController {
       if (expirationDate) item.expirationDate = new Date(expirationDate);
 
       await item.save();
+
+      // Trigger real-time stock alert notifications (with duplicate prevention)
+      if (item.availableQuantity === 0 && previousAvailable > 0) {
+        PushNotificationService.broadcast(
+          NotificationTemplates.OUT_OF_STOCK(item.productName, String(item._id))
+        ).catch(err => console.error('[Inventory] Out of stock push error:', err));
+      } else if (
+        item.availableQuantity <= (item.minimumStockLevel || 5) &&
+        previousAvailable > (item.minimumStockLevel || 5)
+      ) {
+        PushNotificationService.broadcast(
+          NotificationTemplates.LOW_STOCK(
+            item.productName,
+            item.availableQuantity,
+            item.minimumStockLevel || 5,
+            String(item._id)
+          )
+        ).catch(err => console.error('[Inventory] Low stock push error:', err));
+      }
 
       await logAudit('UPDATE_INVENTORY', req as any, String(item._id), {
         productName: item.productName,

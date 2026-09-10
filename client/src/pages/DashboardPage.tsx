@@ -70,7 +70,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="bento-grid grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 5: Hero Search (spans 2 cols)
+          WIDGET 1: Hero Search (spans 2 cols)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="lg:col-span-2 gradient-blue rounded-2xl p-6 text-white relative overflow-hidden">
         {/* Background decoration */}
@@ -81,30 +81,30 @@ export const DashboardPage: React.FC = () => {
         <div className="relative z-10 space-y-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Find Drug Alternatives Instantly
+              {t('dashboard.hero.title', 'Find Drug Alternatives Instantly')}
             </h1>
             <p className="text-blue-100 text-sm mt-1">
-              Search any out-of-stock medication to discover clinically verified substitutions based on active ingredients.
+              {t('dashboard.hero.subtitle', 'Search any out-of-stock medication to discover clinically verified substitutions based on active ingredients.')}
             </p>
           </div>
 
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search drug name (e.g. Augmentin, كالماج)..."
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/15 backdrop-blur border border-white/25 text-white placeholder:text-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 transition"
+                placeholder={t('dashboard.hero.placeholder', 'Search drug name (e.g. Augmentin, كالماج)...')}
+                className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-3 rounded-xl bg-white/15 backdrop-blur border border-white/25 text-white placeholder:text-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 transition"
               />
             </div>
             <button
               type="submit"
               className="px-6 py-3 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition flex items-center gap-2 shadow-sm"
             >
-              <span>Search</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>{t('dashboard.hero.searchBtn', 'Search')}</span>
+              <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           </form>
         </div>
@@ -114,13 +114,15 @@ export const DashboardPage: React.FC = () => {
           WIDGET 2: Quick Stats (4 mini tiles in a 2×2 grid)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="bento-card">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Pharmacy Overview</h3>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          {t('dashboard.overview.title', 'Pharmacy Overview')}
+        </h3>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Drug Catalog', value: stats.totalProducts, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'In Stock', value: stats.availableCount, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-            { label: 'Out of Stock', value: stats.outOfStockCount, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-            { label: 'Shortages', value: totalShortages, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: t('dashboard.stats.catalog', 'Drug Catalog'), value: stats.totalProducts, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: t('dashboard.stats.inStock', 'In Stock'), value: stats.availableCount, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: t('dashboard.stats.outOfStock', 'Out of Stock'), value: stats.outOfStockCount, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+            { label: t('dashboard.stats.shortages', 'Shortages'), value: totalShortages, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className={`${bg} rounded-xl p-3 flex flex-col gap-1`}>
               <div className="flex items-center justify-between">
@@ -137,28 +139,30 @@ export const DashboardPage: React.FC = () => {
           WIDGET 3: Quick Actions
           ═══════════════════════════════════════════════════════════════ */}
       <div className="bento-card">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          {t('dashboard.actions.title', 'Quick Actions')}
+        </h3>
         <div className="space-y-2.5">
           <button
             onClick={() => navigate('/shortages')}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl gradient-red text-white text-sm font-semibold hover:opacity-90 transition"
           >
             <Plus className="w-4 h-4" />
-            <span>Report New Shortage</span>
+            <span>{t('dashboard.actions.reportShortage', 'Report New Shortage')}</span>
           </button>
           <button
             onClick={() => navigate('/search')}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl gradient-blue text-white text-sm font-semibold hover:opacity-90 transition"
           >
             <Search className="w-4 h-4" />
-            <span>Run Similarity Search</span>
+            <span>{t('dashboard.actions.runSimilarity', 'Run Similarity Search')}</span>
           </button>
           <button
             onClick={() => navigate('/catalog')}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition"
           >
             <Pill className="w-4 h-4" />
-            <span>Browse Drug Catalog</span>
+            <span>{t('dashboard.actions.browseCatalog', 'Browse Drug Catalog')}</span>
           </button>
         </div>
       </div>
@@ -170,7 +174,9 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-600" />
-            <h3 className="text-sm font-bold text-slate-800">Recent Activity</h3>
+            <h3 className="text-sm font-bold text-slate-800">
+              {t('dashboard.activity.title', 'Recent Activity')}
+            </h3>
           </div>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
         </div>
@@ -199,11 +205,11 @@ export const DashboardPage: React.FC = () => {
         ) : (
           <div className="text-center py-8 text-slate-400">
             <Activity className="w-6 h-6 mx-auto mb-2 opacity-30" />
-            <p className="text-xs">No recent activity. Run a search to generate records.</p>
+            <p className="text-xs">{t('dashboard.activity.empty', 'No recent activity. Run a search to generate records.')}</p>
           </div>
         )}
       </div>
-      
+
     </div>
   );
 };

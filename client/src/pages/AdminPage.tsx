@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { ISimilarityConfig, IAuditLog } from '../types';
 import { Settings, Sliders, Shield, Activity, Save, CheckCircle2, AlertCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const AdminPage: React.FC = () => {
+  const { t } = useLanguage();
   const [config, setConfig] = useState<ISimilarityConfig>({
     primaryIngredientWeight: 0.60,
     strengthWeight: 0.20,
@@ -74,10 +76,12 @@ export const AdminPage: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-xl font-extrabold text-navy-900 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-medical-600" />
-          <span>Admin Center & Similarity Engine Governance</span>
+          <Settings className="w-5 h-5 text-blue-600" />
+          <span>{t('admin.title', 'Admin Center & Algorithm Weights')}</span>
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">Configure mathematical weights, inspect audit trails, and review clinical feedback</p>
+        <p className="text-xs text-slate-500 mt-0.5">
+          {t('admin.subtitle', 'Configure mathematical weights, inspect audit trails, and review clinical feedback')}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -86,8 +90,10 @@ export const AdminPage: React.FC = () => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-medical-600" />
-              <h2 className="font-bold text-navy-900 text-sm">Deterministic Similarity Scoring Weights</h2>
+              <Sliders className="w-4 h-4 text-blue-600" />
+              <h2 className="font-bold text-navy-900 text-sm">
+                {t('admin.weights.title', 'Similarity Scoring Weights')}
+              </h2>
             </div>
             <span className="text-xs text-slate-500 font-mono">Engine Version: {config.version}</span>
           </div>
@@ -97,8 +103,8 @@ export const AdminPage: React.FC = () => {
             {/* Primary Active Ingredient Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-slate-800">
-                <span>Primary Active Ingredient (Core Anchor)</span>
-                <span className="text-medical-600 font-mono">{Math.round(config.primaryIngredientWeight * 100)}%</span>
+                <span>{t('admin.weights.primary', 'Primary Active Ingredient (Core Anchor)')}</span>
+                <span className="text-blue-600 font-mono">{Math.round(config.primaryIngredientWeight * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -107,7 +113,7 @@ export const AdminPage: React.FC = () => {
                 step="0.05"
                 value={config.primaryIngredientWeight}
                 onChange={(e) => setConfig({ ...config, primaryIngredientWeight: parseFloat(e.target.value) })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-medical-500"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <p className="text-[11px] text-slate-500">Strongest medical compatibility factor. Candidates without matching primary ingredient fail match.</p>
             </div>
@@ -115,8 +121,8 @@ export const AdminPage: React.FC = () => {
             {/* Strength Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-slate-800">
-                <span>Strength / Concentration Normalization</span>
-                <span className="text-medical-600 font-mono">{Math.round(config.strengthWeight * 100)}%</span>
+                <span>{t('admin.weights.strength', 'Strength / Concentration Normalization')}</span>
+                <span className="text-blue-600 font-mono">{Math.round(config.strengthWeight * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -125,7 +131,7 @@ export const AdminPage: React.FC = () => {
                 step="0.05"
                 value={config.strengthWeight}
                 onChange={(e) => setConfig({ ...config, strengthWeight: parseFloat(e.target.value) })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-medical-500"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <p className="text-[11px] text-slate-500">Proportional proximity ratio comparing normalized base values (mg, g, IU).</p>
             </div>
@@ -133,8 +139,8 @@ export const AdminPage: React.FC = () => {
             {/* Dosage Form Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-slate-800">
-                <span>Dosage Form & Route Compatibility</span>
-                <span className="text-medical-600 font-mono">{Math.round(config.dosageFormWeight * 100)}%</span>
+                <span>{t('admin.weights.form', 'Dosage Form & Route Compatibility')}</span>
+                <span className="text-blue-600 font-mono">{Math.round(config.dosageFormWeight * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -143,7 +149,7 @@ export const AdminPage: React.FC = () => {
                 step="0.05"
                 value={config.dosageFormWeight}
                 onChange={(e) => setConfig({ ...config, dosageFormWeight: parseFloat(e.target.value) })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-medical-500"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <p className="text-[11px] text-slate-500">Evaluates form family (Tablet vs Capsule: 80%, Tablet vs Topical: 0%).</p>
             </div>
@@ -151,8 +157,8 @@ export const AdminPage: React.FC = () => {
             {/* Secondary Ingredients Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-slate-800">
-                <span>Secondary Ingredients Jaccard Overlap</span>
-                <span className="text-medical-600 font-mono">{Math.round(config.secondaryIngredientWeight * 100)}%</span>
+                <span>{t('admin.weights.secondary', 'Secondary Ingredients Jaccard Overlap')}</span>
+                <span className="text-blue-600 font-mono">{Math.round(config.secondaryIngredientWeight * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -161,7 +167,7 @@ export const AdminPage: React.FC = () => {
                 step="0.05"
                 value={config.secondaryIngredientWeight}
                 onChange={(e) => setConfig({ ...config, secondaryIngredientWeight: parseFloat(e.target.value) })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-medical-500"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <p className="text-[11px] text-slate-500">Measures intersection over union across non-primary vitamins, minerals, and buffers.</p>
             </div>
@@ -171,7 +177,7 @@ export const AdminPage: React.FC = () => {
           {/* Validation & Save Footer */}
           <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs">
-              <span className="font-semibold text-slate-600">Total Sum:</span>
+              <span className="font-semibold text-slate-600">{t('admin.weights.total', 'Total Weight')}:</span>
               <span className={`font-mono font-bold px-2 py-0.5 rounded text-xs ${
                 isWeightValid ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
               }`}>
@@ -184,7 +190,7 @@ export const AdminPage: React.FC = () => {
               {saveSuccess && (
                 <span className="text-emerald-600 text-xs font-semibold flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Weights Saved!</span>
+                  <span>{t('admin.weights.saved', 'Weights Saved!')}</span>
                 </span>
               )}
               {errorMessage && (
@@ -193,10 +199,10 @@ export const AdminPage: React.FC = () => {
               <button
                 onClick={handleSaveConfig}
                 disabled={!isWeightValid || isSaving}
-                className="px-4 py-2 bg-navy-900 hover:bg-navy-800 disabled:opacity-40 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>{isSaving ? 'Updating...' : 'Save Configuration'}</span>
+                <span>{isSaving ? t('common.saving', 'Saving…') : t('common.save', 'Save Configuration')}</span>
               </button>
             </div>
           </div>
@@ -207,14 +213,14 @@ export const AdminPage: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
             <Shield className="w-4 h-4 text-emerald-600" />
-            <h2 className="font-bold text-navy-900 text-sm">Pharmacist Feedback Analytics</h2>
+            <h2 className="font-bold text-navy-900 text-sm">{t('admin.feedback.title', 'Pharmacist Feedback Analytics')}</h2>
           </div>
 
           <div className="space-y-3">
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-emerald-900 font-semibold">
                 <ThumbsUp className="w-4 h-4 text-emerald-600" />
-                <span>Useful Matches</span>
+                <span>{t('search.feedback.useful', 'Useful Matches')}</span>
               </div>
               <span className="text-lg font-extrabold text-emerald-700 font-mono">{feedbackStats.useful || 0}</span>
             </div>
@@ -222,13 +228,13 @@ export const AdminPage: React.FC = () => {
             <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-rose-900 font-semibold">
                 <ThumbsDown className="w-4 h-4 text-rose-600" />
-                <span>Not Clinically Suitable</span>
+                <span>{t('search.feedback.notSuitable', 'Not Clinically Suitable')}</span>
               </div>
               <span className="text-lg font-extrabold text-rose-700 font-mono">{feedbackStats.notClinicallySuitable || 0}</span>
             </div>
 
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center">
-              <span className="text-[11px] text-slate-500">Overall Clinical Acceptance Rate</span>
+              <span className="text-[11px] text-slate-500">{t('admin.feedback.rate', 'Acceptance Rate')}</span>
               <p className="text-xl font-extrabold text-navy-900 font-mono mt-0.5">{feedbackStats.acceptanceRate}%</p>
             </div>
           </div>
@@ -241,20 +247,20 @@ export const AdminPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-navy-900" />
-            <h2 className="font-bold text-navy-900 text-sm">System Audit Trail & Access Logs</h2>
+            <h2 className="font-bold text-navy-900 text-sm">{t('admin.logs.title', 'System Audit Trail & Access Logs')}</h2>
           </div>
-          <span className="text-xs text-slate-500">Last 20 events recorded</span>
+          <span className="text-xs text-slate-500">Last 20 events</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left rtl:text-right text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
               <tr>
-                <th className="py-2.5 px-3">Timestamp</th>
-                <th className="py-2.5 px-3">Action</th>
-                <th className="py-2.5 px-3">Pharmacist / User</th>
-                <th className="py-2.5 px-3">Target Drug / Entity</th>
-                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3">{t('admin.logs.timestamp', 'Timestamp')}</th>
+                <th className="py-2.5 px-3">{t('admin.logs.action', 'Action')}</th>
+                <th className="py-2.5 px-3">{t('admin.logs.user', 'Pharmacist / User')}</th>
+                <th className="py-2.5 px-3">{t('admin.logs.target', 'Target Drug / Entity')}</th>
+                <th className="py-2.5 px-3">{t('admin.logs.status', 'Status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-sans">

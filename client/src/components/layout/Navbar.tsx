@@ -6,18 +6,20 @@ import {
   Pill, User as UserIcon, Globe,
   LayoutDashboard, Search, Database, Package, AlertTriangle, Settings
 } from 'lucide-react';
+import { NotificationBell } from '../notifications/NotificationBell';
+import { NotificationCenter } from '../notifications/NotificationCenter';
 
 export const Navbar: React.FC = () => {
   const { user, switchRole } = useAuth();
-  const { language, toggleLanguage } = useLanguage();
+  const { language, toggleLanguage, t } = useLanguage();
 
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-    { to: '/search', label: 'Search', icon: Search },
-    { to: '/shortages', label: 'نواقص', icon: AlertTriangle },
-    { to: '/catalog', label: 'Catalog', icon: Database },
-    { to: '/inventory', label: 'Inventory', icon: Package },
-    ...(user?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin', icon: Settings }] : []),
+    { to: '/', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard, end: true },
+    { to: '/search', label: t('nav.search', 'Search'), icon: Search },
+    { to: '/shortages', label: t('nav.shortages', 'Shortages'), icon: AlertTriangle },
+    { to: '/catalog', label: t('nav.catalog', 'Catalog'), icon: Database },
+    { to: '/inventory', label: t('nav.inventory', 'Inventory'), icon: Package },
+    ...(user?.role === 'ADMIN' ? [{ to: '/admin', label: t('nav.admin', 'Admin'), icon: Settings }] : []),
   ];
 
   return (
@@ -40,10 +42,11 @@ export const Navbar: React.FC = () => {
             {/* Language */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              title="Toggle Language / تغيير اللغة"
             >
-              <Globe className="w-3.5 h-3.5" />
-              <span>{language === 'en' ? 'AR' : 'EN'}</span>
+              <Globe className="w-3.5 h-3.5 text-blue-600" />
+              <span>{language === 'en' ? 'عربي' : 'English'}</span>
             </button>
 
             {/* Role Switcher */}
@@ -54,7 +57,7 @@ export const Navbar: React.FC = () => {
                   user?.role === 'PHARMACIST' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
-                Pharmacist
+                {t('role.pharmacist', 'Pharmacist')}
               </button>
               <button
                 onClick={() => switchRole('ADMIN')}
@@ -62,9 +65,12 @@ export const Navbar: React.FC = () => {
                   user?.role === 'ADMIN' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
-                Admin
+                {t('role.admin', 'Admin')}
               </button>
             </div>
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* User */}
             <div className="flex items-center gap-2 pl-2.5 border-l border-slate-200">
@@ -78,6 +84,9 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Notification Center Dropdown */}
+        <NotificationCenter />
 
         {/* Bottom row: Navigation tabs */}
         <nav className="flex items-center gap-1 -mb-px">

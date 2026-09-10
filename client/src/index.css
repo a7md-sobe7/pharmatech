@@ -72,6 +72,23 @@
 .bento-grid > *:nth-child(5) { animation-delay: 240ms; }
 .bento-grid > *:nth-child(6) { animation-delay: 300ms; }
 
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes bounce-short {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-bounce-short {
+  animation: bounce-short 1.5s ease-in-out infinite;
+}
+
 /* ─── Removed (kept as no-ops for backward compat) ──────────────────── */
 .animate-subtle-pulse {}
 .card-hover {}

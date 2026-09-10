@@ -1,6 +1,7 @@
 import React from 'react';
 import { IDrugProduct } from '../../types';
 import { X, ExternalLink, ShieldCheck, FileText, AlertOctagon, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Props {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product }) => {
+  const { t } = useLanguage();
   if (!isOpen || !product) return null;
 
   return (
@@ -40,12 +42,12 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
           {/* Primary Active Ingredient Callout */}
           <div className="p-4 rounded-xl bg-medical-50 border border-medical-200 flex items-start justify-between">
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-medical-700">Primary Active Ingredient</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-medical-700">{t('product.primaryIngredient', 'Primary Active Ingredient')}</span>
               <p className="text-base font-bold text-navy-900 mt-0.5">
                 {product.primaryActiveIngredient?.name} ({product.primaryActiveIngredient?.strength} {product.primaryActiveIngredient?.unit})
               </p>
               <p className="text-xs text-medical-800/80 mt-1">
-                Confidence: <span className="font-semibold">{product.primaryActiveIngredient?.confidence}</span> • Source: {product.primaryActiveIngredient?.source || 'DailyMed'}
+                {t('product.confidence', 'Confidence')}: <span className="font-semibold">{product.primaryActiveIngredient?.confidence}</span> • {t('product.source', 'Source')}: {product.primaryActiveIngredient?.source || 'DailyMed'}
               </p>
             </div>
             <div className="px-3 py-1 rounded-full bg-medical-100 text-medical-800 text-xs font-semibold border border-medical-300">
@@ -57,15 +59,15 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
           <div>
             <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-slate-600" />
-              <span>Full Active Ingredients Breakdown</span>
+              <span>{t('product.allIngredients', 'Full Active Ingredients Breakdown')}</span>
             </h3>
             <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left">
+              <table className="w-full text-left rtl:text-right">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
                   <tr>
-                    <th className="py-2 px-3">Ingredient</th>
-                    <th className="py-2 px-3">Role</th>
-                    <th className="py-2 px-3">Strength</th>
+                    <th className="py-2 px-3">{t('product.ingredient', 'Ingredient')}</th>
+                    <th className="py-2 px-3">{t('product.role', 'Role')}</th>
+                    <th className="py-2 px-3">{t('product.strength', 'Strength')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-sans">
@@ -79,7 +81,7 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
                           {ing.role}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 font-mono">{ing.strength ? `${ing.strength} ${ing.unit}` : 'Unspecified'}</td>
+                      <td className="py-2.5 px-3 font-mono">{ing.strength ? `${ing.strength} ${ing.unit}` : t('product.unspecified', 'Unspecified')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -92,7 +94,7 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
             <div className="p-3.5 bg-emerald-50/50 border border-emerald-200 rounded-xl">
               <h4 className="font-bold text-emerald-900 flex items-center gap-1.5 mb-1.5">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Indications</span>
+                <span>{t('product.indications', 'Indications')}</span>
               </h4>
               <ul className="list-disc list-inside space-y-1 text-slate-700">
                 {product.indications?.map((ind, i) => (
@@ -104,7 +106,7 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
             <div className="p-3.5 bg-rose-50/50 border border-rose-200 rounded-xl">
               <h4 className="font-bold text-rose-900 flex items-center gap-1.5 mb-1.5">
                 <AlertOctagon className="w-3.5 h-3.5 text-rose-600" />
-                <span>Contraindications</span>
+                <span>{t('product.contraindications', 'Contraindications')}</span>
               </h4>
               <ul className="list-disc list-inside space-y-1 text-slate-700">
                 {product.contraindications?.map((c, i) => (
@@ -117,8 +119,8 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
           {/* Regulatory Provenance & External Links */}
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-800">Source Provenance: {product.source}</span>
-              <span className="text-slate-500 text-[11px]">Last verified: {new Date(product.lastVerifiedAt).toLocaleDateString()}</span>
+              <span className="font-bold text-slate-800">{t('product.provenance', 'Source Provenance')}: {product.source}</span>
+              <span className="text-slate-500 text-[11px]">{t('product.lastVerified', 'Last verified')}: {new Date(product.lastVerifiedAt).toLocaleDateString()}</span>
             </div>
             {product.references && product.references.length > 0 && (
               <div className="space-y-1 pt-1">
@@ -146,7 +148,7 @@ export const ProductDetailsModal: React.FC<Props> = ({ isOpen, onClose, product 
             onClick={onClose}
             className="px-4 py-2 bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold rounded-lg transition"
           >
-            Close Monograph
+            {t('product.closeMonograph', 'Close Monograph')}
           </button>
         </div>
 

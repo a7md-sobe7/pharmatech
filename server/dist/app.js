@@ -9,6 +9,7 @@ import { inventoryRoutes } from './modules/inventory/inventoryRoutes.js';
 import { similarityRoutes } from './modules/similarity/similarityRoutes.js';
 import { auditRoutes } from './modules/audit/auditRoutes.js';
 import { shortageRoutes } from './modules/shortages/shortageRoutes.js';
+import { notificationRoutes } from './modules/notifications/notificationRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 export const createApp = () => {
     const app = express();
@@ -45,6 +46,7 @@ export const createApp = () => {
     app.use('/api/similarity', similarityRoutes);
     app.use('/api/audit', auditRoutes);
     app.use('/api/shortages', shortageRoutes);
+    app.use('/api/notifications', notificationRoutes);
     // 404 Route Handler
     app.use((req, res) => {
         res.status(404).json({
