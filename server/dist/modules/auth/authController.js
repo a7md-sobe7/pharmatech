@@ -84,12 +84,9 @@ export class AuthController {
             next(error);
         }
     }
-    static async sendOtp(req, res, next) {
+    static async sendOTP(req, res, next) {
         try {
             const { email, role } = req.body;
-            if (!email || !role) {
-                throw new AppError('Email and role are required.', 400, 'VALIDATION_ERROR');
-            }
             // Simulate sending OTP (e.g., to email or SMS)
             // In production, integrate with Twilio or SendGrid here.
             console.log(`[OTP Sent] Mock OTP sent to ${email} for role ${role}`);
@@ -102,12 +99,9 @@ export class AuthController {
             next(error);
         }
     }
-    static async verifyOtp(req, res, next) {
+    static async verifyOTP(req, res, next) {
         try {
             const { email, role, otp } = req.body;
-            if (!email || !role || !otp) {
-                throw new AppError('Email, role, and OTP are required.', 400, 'VALIDATION_ERROR');
-            }
             // Mock OTP validation - accept '123456' for any email during development
             if (otp !== '123456') {
                 throw new AppError('Invalid OTP code.', 401, 'INVALID_CREDENTIALS');

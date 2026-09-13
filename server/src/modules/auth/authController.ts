@@ -109,8 +109,9 @@ export class AuthController {
     }
   }
 
-  
-  
+  public static async sendOTP(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, role } = req.body;
       
       // Simulate sending OTP (e.g., to email or SMS)
       // In production, integrate with Twilio or SendGrid here.
@@ -125,7 +126,9 @@ export class AuthController {
     }
   }
 
-  
+  public static async verifyOTP(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, role, otp } = req.body;
 
       // Mock OTP validation - accept '123456' for any email during development
       if (otp !== '123456') {
