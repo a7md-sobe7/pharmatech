@@ -84,6 +84,74 @@ export class AuthController {
             next(error);
         }
     }
+    static async sendOtp(req, res, next) {
+        try {
+            const { email, role } = req.body;
+            if (!email || !role) {
+                throw new AppError('Email and role are required.', 400, 'VALIDATION_ERROR');
+            }
+            // Simulate sending OTP (e.g., to email or SMS)
+            // In production, integrate with Twilio or SendGrid here.
+            console.log(`[OTP Sent] Mock OTP sent to ${email} for role ${role}`);
+            res.json({
+                success: true,
+                message: 'OTP sent successfully.'
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    static async verifyOtp(req, res, next) {
+        try {
+            const { email, role, otp } = req.body;
+            if (!email || !role || !otp) {
+                throw new AppError('Email, role, and OTP are required.', 400, 'VALIDATION_ERROR');
+            }
+            // Mock OTP validation - accept '123456' for any email during development
+            if (otp !== '123456') {
+                throw new AppError('Invalid OTP code.', 401, 'INVALID_CREDENTIALS');
+            }
+            // Find or mock user
+            let user = await User.findOne({ email: email.toLowerCase(), role });
+            if (!user) {
+                // Mock user creation for demo purposes if not exists
+                const name = role === 'ADMIN' ? 'Chief Admin' : 'Dr. Sarah Ahmed, PharmD';
+                user = new User({
+                    name,
+                    email: email.toLowerCase(),
+                    password: 'Password@123',
+                    role,
+                    licenseNumber: 'LIC-2026-PH',
+                    pharmacyName: 'Al-Shifa Community Pharmacy'
+                });
+                await user.save();
+            }
+            user.lastLogin = new Date();
+            await user.save();
+            const secret = process.env.JWT_SECRET || 'pharmamatch_super_secure_jwt_secret_key_2026_clinical';
+            const token = jwt.sign({ id: user._id, email: user.email, role: user.role, name: user.name }, secret, { expiresIn: '7d' });
+            await logAudit('USER_LOGIN_OTP', req, String(user._id), { email: user.email, role: user.role });
+            res.json({
+                success: true,
+                message: 'Logged in successfully.',
+                data: {
+                    token,
+                    user: {
+                        id: user._id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        licenseNumber: user.licenseNumber,
+                        pharmacyName: user.pharmacyName
+                    }
+                }
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     static async me(req, res, next) {
         try {
             if (!req.user) {

@@ -1,4 +1,3 @@
-export type ShortageUrgency = 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type ShortageStatus = 'PENDING' | 'ORDERED' | 'RESOLVED';
 
 export interface IShortage {
@@ -11,7 +10,6 @@ export interface IShortage {
   drugClass?: string;
   currentQuantity: number;
   neededQuantity: number;
-  urgency: ShortageUrgency;
   status: ShortageStatus;
   notes?: string;
   addedBy?: string;
@@ -21,9 +19,6 @@ export interface IShortage {
 
 export interface IShortageStats {
   total: number;
-  byCritical: number;
-  byHigh: number;
-  byMedium: number;
   pending: number;
   ordered: number;
   resolved: number;

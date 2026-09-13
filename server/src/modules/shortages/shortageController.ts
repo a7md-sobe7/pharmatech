@@ -8,11 +8,8 @@ export class ShortageController {
    * List all shortage entries, optionally filtered by urgency or status
    */
   public static async listShortages(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { urgency, status, search } = req.query;
+    try {      const { status, search } = req.query;
       const query: Record<string, any> = {};
-
-      if (urgency && urgency !== 'ALL') query.urgency = urgency;
       if (status && status !== 'ALL') query.status = status;
       if (search) {
         const re = new RegExp(String(search), 'i');
@@ -24,7 +21,7 @@ export class ShortageController {
       }
 
       const items = await Shortage.find(query)
-        .sort({ urgency: 1, createdAt: -1 })
+        .sort({ createdAt: -1 })
         .lean();
 
       res.json({ success: true, data: { items } });
@@ -43,9 +40,6 @@ export class ShortageController {
 
       const stats = {
         total: all.length,
-        byCritical: all.filter((i) => i.urgency === 'CRITICAL').length,
-        byHigh: all.filter((i) => i.urgency === 'HIGH').length,
-        byMedium: all.filter((i) => i.urgency === 'MEDIUM').length,
         pending: all.filter((i) => i.status === 'PENDING').length,
         ordered: all.filter((i) => i.status === 'ORDERED').length,
         resolved: all.filter((i) => i.status === 'RESOLVED').length,
@@ -72,7 +66,6 @@ export class ShortageController {
         drugClass,
         currentQuantity,
         neededQuantity,
-        urgency,
         notes,
         addedBy,
       } = req.body;
@@ -89,8 +82,7 @@ export class ShortageController {
         manufacturer,
         drugClass,
         currentQuantity: Number(currentQuantity ?? 0),
-        neededQuantity: Number(neededQuantity),
-        urgency,   // if CRITICAL, pre-save hook respects it; otherwise auto-computed
+        neededQuantity: Number(neededQuantity),   // if CRITICAL, pre-save hook respects it; otherwise auto-computed
         notes,
         addedBy,
         status: 'PENDING',
@@ -118,7 +110,6 @@ export class ShortageController {
       const {
         currentQuantity,
         neededQuantity,
-        urgency,
         status,
         notes,
       } = req.body;
@@ -128,7 +119,6 @@ export class ShortageController {
 
       if (currentQuantity !== undefined) item.currentQuantity = Math.max(0, Number(currentQuantity));
       if (neededQuantity !== undefined) item.neededQuantity = Math.max(0, Number(neededQuantity));
-      if (urgency !== undefined) item.urgency = urgency;
       if (status !== undefined) item.status = status;
       if (notes !== undefined) item.notes = notes;
 

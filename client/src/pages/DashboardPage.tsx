@@ -64,7 +64,7 @@ export const DashboardPage: React.FC = () => {
   };
 
   const totalShortages = shortageStats
-    ? shortageStats.byCritical + shortageStats.byHigh + shortageStats.byMedium
+    ? shortageStats.total
     : shortages.length;
 
   return (

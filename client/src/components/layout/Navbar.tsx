@@ -13,14 +13,22 @@ export const Navbar: React.FC = () => {
   const { user, switchRole } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
 
-  const navItems = [
-    { to: '/', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard, end: true },
+  const commonTabs = [
     { to: '/search', label: t('nav.search', 'Search'), icon: Search },
     { to: '/shortages', label: t('nav.shortages', 'Shortages'), icon: AlertTriangle },
     { to: '/catalog', label: t('nav.catalog', 'Catalog'), icon: Database },
     { to: '/inventory', label: t('nav.inventory', 'Inventory'), icon: Package },
-    ...(user?.role === 'ADMIN' ? [{ to: '/admin', label: t('nav.admin', 'Admin'), icon: Settings }] : []),
   ];
+
+  const navItems: Array<{ to: string; label: string; icon: React.ElementType; end?: boolean }> = user?.role === 'ADMIN' 
+    ? [
+        { to: '/admin', label: t('nav.admin', 'Admin Center'), icon: Settings, end: true },
+        ...commonTabs
+      ]
+    : [
+        { to: '/', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard, end: true },
+        ...commonTabs
+      ];
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200">

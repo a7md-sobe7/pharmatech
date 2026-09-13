@@ -4,5 +4,7 @@ import { authenticate } from '../../middleware/auth.js';
 const router = Router();
 router.post('/register', AuthController.register);
 router.post('/login', AuthController.login);
+router.post('/otp/send', AuthController.sendOtp);
+router.post('/otp/verify', AuthController.verifyOtp);
 router.get('/me', authenticate, AuthController.me);
 export const authRoutes = router;

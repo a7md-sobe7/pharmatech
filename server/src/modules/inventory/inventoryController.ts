@@ -146,6 +146,16 @@ export class InventoryController {
         ).catch(err => console.error('[Inventory] Low stock push error:', err));
       }
 
+      if (quantity !== undefined && previousAvailable !== item.availableQuantity) {
+        PushNotificationService.sendToRole('ADMIN', {
+          type: 'SYSTEM_ALERT',
+          title: 'Inventory Updated',
+          message: `${item.productName} quantity was updated from ${previousAvailable} to ${item.availableQuantity}.`,
+          priority: 'NORMAL',
+          data: { url: '/inventory' }
+        }).catch(err => console.error('[Inventory] Admin update push error:', err));
+      }
+
       await logAudit('UPDATE_INVENTORY', req as any, String(item._id), {
         productName: item.productName,
         newQuantity: item.quantity,

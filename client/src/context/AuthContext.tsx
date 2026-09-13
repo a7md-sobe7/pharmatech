@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(res.data.user);
         }
       } catch (err) {
-        // Keep fallback user
+        // keep fallback
       }
     };
     if (token) {
@@ -45,17 +45,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, role: UserRole = 'PHARMACIST') => {
     setIsLoading(true);
     try {
-      const res: any = await apiClient.post('/auth/login', {
-        email,
-        password: 'Password@123'
-      });
+      const res: any = await apiClient.post('/auth/login', { email, password: 'Password@123' });
       if (res.success && res.data) {
         setUser(res.data.user);
         setToken(res.data.token);
         localStorage.setItem('pharmamatch_token', res.data.token);
       }
     } catch (err) {
-      // Fallback demo user
       const demoUser: IUser = {
         id: `demo-${role.toLowerCase()}`,
         name: role === 'ADMIN' ? 'Chief Admin' : 'Dr. Sarah Ahmed, PharmD',
@@ -77,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updated: IUser = {
       ...user,
       role: newRole,
-      name: newRole === 'ADMIN' ? 'Chief Admin' : newRole === 'PHARMACIST' ? 'Dr. Sarah Ahmed, PharmD' : 'Pharmacy Staff'
+      name: newRole === 'ADMIN' ? 'Chief Admin' : 'Dr. Sarah Ahmed, PharmD'
     };
     setUser(updated);
   };
@@ -90,15 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        logout,
-        switchRole
-      }}
+      value={{ user, token, isAuthenticated: !!user, isLoading, login, logout, switchRole }}
     >
       {children}
     </AuthContext.Provider>

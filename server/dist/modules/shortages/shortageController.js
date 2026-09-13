@@ -7,10 +7,8 @@ export class ShortageController {
      */
     static async listShortages(req, res, next) {
         try {
-            const { urgency, status, search } = req.query;
+            const { status, search } = req.query;
             const query = {};
-            if (urgency && urgency !== 'ALL')
-                query.urgency = urgency;
             if (status && status !== 'ALL')
                 query.status = status;
             if (search) {
@@ -22,7 +20,7 @@ export class ShortageController {
                 ];
             }
             const items = await Shortage.find(query)
-                .sort({ urgency: 1, createdAt: -1 })
+                .sort({ createdAt: -1 })
                 .lean();
             res.json({ success: true, data: { items } });
         }
@@ -39,9 +37,6 @@ export class ShortageController {
             const all = await Shortage.find().lean();
             const stats = {
                 total: all.length,
-                byCritical: all.filter((i) => i.urgency === 'CRITICAL').length,
-                byHigh: all.filter((i) => i.urgency === 'HIGH').length,
-                byMedium: all.filter((i) => i.urgency === 'MEDIUM').length,
                 pending: all.filter((i) => i.status === 'PENDING').length,
                 ordered: all.filter((i) => i.status === 'ORDERED').length,
                 resolved: all.filter((i) => i.status === 'RESOLVED').length,
@@ -58,7 +53,7 @@ export class ShortageController {
      */
     static async createShortage(req, res, next) {
         try {
-            const { medicineName, medicineNameAr, concentration, scientificName, manufacturer, drugClass, currentQuantity, neededQuantity, urgency, notes, addedBy, } = req.body;
+            const { medicineName, medicineNameAr, concentration, scientificName, manufacturer, drugClass, currentQuantity, neededQuantity, notes, addedBy, } = req.body;
             if (!medicineName || neededQuantity === undefined) {
                 throw new AppError('medicineName and neededQuantity are required.', 400, 'VALIDATION_ERROR');
             }
@@ -70,8 +65,7 @@ export class ShortageController {
                 manufacturer,
                 drugClass,
                 currentQuantity: Number(currentQuantity ?? 0),
-                neededQuantity: Number(neededQuantity),
-                urgency, // if CRITICAL, pre-save hook respects it; otherwise auto-computed
+                neededQuantity: Number(neededQuantity), // if CRITICAL, pre-save hook respects it; otherwise auto-computed
                 notes,
                 addedBy,
                 status: 'PENDING',
@@ -94,7 +88,7 @@ export class ShortageController {
     static async updateShortage(req, res, next) {
         try {
             const { id } = req.params;
-            const { currentQuantity, neededQuantity, urgency, status, notes, } = req.body;
+            const { currentQuantity, neededQuantity, status, notes, } = req.body;
             const item = await Shortage.findById(id);
             if (!item)
                 throw new AppError('Shortage entry not found.', 404, 'NOT_FOUND');
@@ -102,8 +96,6 @@ export class ShortageController {
                 item.currentQuantity = Math.max(0, Number(currentQuantity));
             if (neededQuantity !== undefined)
                 item.neededQuantity = Math.max(0, Number(neededQuantity));
-            if (urgency !== undefined)
-                item.urgency = urgency;
             if (status !== undefined)
                 item.status = status;
             if (notes !== undefined)

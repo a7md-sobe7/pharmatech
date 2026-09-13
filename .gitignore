@@ -5,3 +5,5 @@ server/node_modules/
 dist/
 client/dist/
 server/dist/
+# Local Netlify folder
+.netlify

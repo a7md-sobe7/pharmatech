@@ -1,5 +1,4 @@
 import mongoose, { Document } from 'mongoose';
-export type ShortageUrgency = 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type ShortageStatus = 'PENDING' | 'ORDERED' | 'RESOLVED';
 export interface IShortage {
     _id: string;
@@ -11,7 +10,6 @@ export interface IShortage {
     drugClass?: string;
     currentQuantity: number;
     neededQuantity: number;
-    urgency: ShortageUrgency;
     status: ShortageStatus;
     notes?: string;
     addedBy?: string;

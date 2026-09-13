@@ -5,7 +5,7 @@ import {
   RefreshCw, CheckCircle2, ClipboardList
 } from 'lucide-react';
 import { apiClient } from '../api/client';
-import { IShortage, IShortageStats, IDrugReference, ShortageUrgency, ShortageStatus } from '../types/shortage';
+import { IShortage, IShortageStats, IDrugReference, ShortageStatus } from '../types/shortage';
 import { useLanguage } from '../context/LanguageContext';
 
 // ─── Drug Reference DB (loaded once from bundled JSON) ──────────────────────
@@ -26,36 +26,7 @@ async function loadDrugRef(): Promise<IDrugReference[]> {
   }
 }
 
-// ─── Urgency helpers ─────────────────────────────────────────────────────────
-function suggestUrgency(neededQty: number): ShortageUrgency {
-  if (neededQty > 5) return 'CRITICAL';
-  if (neededQty >= 2 && neededQty <= 5) return 'MEDIUM';
-  return 'HIGH'; // 0 or 1 unit
-}
 
-const URGENCY_META: Record<ShortageUrgency, { label: string; color: string; bg: string; border: string; dot: string }> = {
-  CRITICAL: {
-    label: 'CRITICAL',
-    color: 'text-red-700',
-    bg: 'bg-red-50',
-    border: 'border-red-300',
-    dot: 'bg-red-500',
-  },
-  HIGH: {
-    label: 'HIGH',
-    color: 'text-orange-700',
-    bg: 'bg-orange-50',
-    border: 'border-orange-300',
-    dot: 'bg-orange-500',
-  },
-  MEDIUM: {
-    label: 'MEDIUM',
-    color: 'text-amber-700',
-    bg: 'bg-amber-50',
-    border: 'border-amber-300',
-    dot: 'bg-amber-400',
-  },
-};
 
 const STATUS_META: Record<ShortageStatus, { label: string; color: string; bg: string }> = {
   PENDING: { label: 'Pending', color: 'text-slate-700', bg: 'bg-slate-100' },
@@ -65,16 +36,7 @@ const STATUS_META: Record<ShortageStatus, { label: string; color: string; bg: st
 
 // ─── Subcomponents ───────────────────────────────────────────────────────────
 
-interface UrgencyBadgeProps { urgency: ShortageUrgency; pulse?: boolean }
-const UrgencyBadge: React.FC<UrgencyBadgeProps> = ({ urgency, pulse }) => {
-  const m = URGENCY_META[urgency];
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider border ${m.bg} ${m.color} ${m.border}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${m.dot}`} />
-      {m.label}
-    </span>
-  );
-};
+
 
 interface StatusBadgeProps { status: ShortageStatus }
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
@@ -191,7 +153,6 @@ interface ModalForm {
   drugClass: string;
   currentQuantity: number;
   neededQuantity: number;
-  urgency: ShortageUrgency;
 }
 
 const EMPTY_FORM: ModalForm = {
@@ -203,7 +164,6 @@ const EMPTY_FORM: ModalForm = {
   drugClass: '',
   currentQuantity: 0,
   neededQuantity: 1,
-  urgency: 'HIGH',
 };
 
 interface ShortageModalProps {
@@ -217,14 +177,8 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
   const { t } = useLanguage();
   const [form, setForm] = useState<ModalForm>({ ...EMPTY_FORM, ...initial });
   const [saving, setSaving] = useState(false);
-  const [userOverrodeUrgency, setUserOverrodeUrgency] = useState(false);
 
-  // Auto-suggest urgency when neededQuantity changes (unless user overrode)
-  useEffect(() => {
-    if (!userOverrodeUrgency) {
-      setForm((f) => ({ ...f, urgency: suggestUrgency(f.neededQuantity) }));
-    }
-  }, [form.neededQuantity, userOverrodeUrgency]);
+
 
   const handleDrugPick = (drug: IDrugReference | null, rawText: string) => {
     if (drug) {
@@ -252,8 +206,6 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
       setSaving(false);
     }
   };
-
-  const u = URGENCY_META[form.urgency];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -341,39 +293,6 @@ const ShortageModal: React.FC<ShortageModalProps> = ({ mode, initial, onClose, o
             </p>
           </div>
 
-          {/* 5. Urgency */}
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-              {t('shortages.modal.urgency', 'Urgency Level')}
-            </label>
-            <div className="flex gap-2">
-              {(['MEDIUM', 'HIGH', 'CRITICAL'] as ShortageUrgency[]).map((lvl) => {
-                const m = URGENCY_META[lvl];
-                const isActive = form.urgency === lvl;
-                return (
-                  <button
-                    key={lvl}
-                    type="button"
-                    onClick={() => {
-                      setForm((f) => ({ ...f, urgency: lvl }));
-                      setUserOverrodeUrgency(true);
-                    }}
-                    className={`flex-1 py-2 rounded-xl border text-xs font-bold uppercase tracking-wide transition
-                      ${isActive ? `${m.bg} ${m.color} ${m.border} shadow-sm` : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
-                  >
-                    {t(`urgency.${lvl.toLowerCase()}`, lvl)}
-                  </button>
-                );
-              })}
-            </div>
-            <div className={`mt-2 text-[11px] px-3 py-1.5 rounded-lg ${u.bg} ${u.color} flex items-center gap-1.5`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${u.dot}`} />
-              {form.urgency === 'CRITICAL' && t('shortages.modal.criticalDesc', 'Critical shortage — immediate action required')}
-              {form.urgency === 'HIGH' && t('shortages.modal.highDesc', 'High priority — order soon')}
-              {form.urgency === 'MEDIUM' && t('shortages.modal.mediumDesc', 'Medium — monitor and plan order')}
-            </div>
-          </div>
-
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <button
@@ -403,7 +322,6 @@ export const ShortagesPage: React.FC = () => {
   const [items, setItems] = useState<IShortage[]>([]);
   const [stats, setStats] = useState<IShortageStats | null>(null);
   const [loading, setLoading] = useState(false);
-  const [filterUrgency, setFilterUrgency] = useState<'ALL' | ShortageUrgency>('ALL');
   const [filterStatus, setFilterStatus] = useState<'ALL' | ShortageStatus>('ALL');
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -422,7 +340,6 @@ export const ShortagesPage: React.FC = () => {
     setLoading(true);
     try {
       let url = '/shortages?';
-      if (filterUrgency !== 'ALL') url += `urgency=${filterUrgency}&`;
       if (filterStatus !== 'ALL') url += `status=${filterStatus}&`;
       if (search) url += `search=${encodeURIComponent(search)}&`;
 
@@ -440,7 +357,7 @@ export const ShortagesPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { fetchData(); }, [filterUrgency, filterStatus, search]);
+  useEffect(() => { fetchData(); }, [filterStatus, search]);
 
   const handleAdd = async (form: ModalForm) => {
     await apiClient.post('/shortages', form);
@@ -454,7 +371,6 @@ export const ShortagesPage: React.FC = () => {
     await apiClient.patch(`/shortages/${editItem._id}`, {
       currentQuantity: form.currentQuantity,
       neededQuantity: form.neededQuantity,
-      urgency: form.urgency,
     });
     setEditItem(null);
     showToast('Shortage entry updated.');
@@ -485,8 +401,6 @@ export const ShortagesPage: React.FC = () => {
       showToast('Failed to update status.', 'error');
     }
   };
-
-  const urgentCount = stats ? stats.byCritical + stats.byHigh : 0;
 
   return (
     <div className="space-y-6 relative">
@@ -527,9 +441,6 @@ export const ShortagesPage: React.FC = () => {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: t('urgency.critical', 'Critical'), count: stats.byCritical, icon: Flame, text: 'text-red-700' },
-            { label: t('urgency.high', 'High'), count: stats.byHigh, icon: ShieldAlert, text: 'text-orange-700' },
-            { label: t('urgency.medium', 'Medium'), count: stats.byMedium, icon: Minus, text: 'text-amber-700' },
             { label: t('status.resolved', 'Resolved'), count: stats.resolved, icon: CheckCircle2, text: 'text-emerald-700' },
           ].map(({ label, count, icon: Icon, text }) => (
             <div key={label} className={`rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3`}>
@@ -545,16 +456,6 @@ export const ShortagesPage: React.FC = () => {
         </div>
       )}
 
-      {/* ── Alert Banner (if critical items exist) ── */}
-      {stats && stats.byCritical > 0 && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-300 rounded-2xl px-4 py-3">
-          <Flame className="w-5 h-5 text-red-600 shrink-0" />
-          <p className="text-sm text-red-700 font-semibold">
-            <span className="font-extrabold">{stats.byCritical} {t('urgency.critical', 'critical')}</span> {t('shortages.stats.critical', 'shortages require immediate attention.')}
-          </p>
-        </div>
-      )}
-
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Search */}
@@ -567,19 +468,6 @@ export const ShortagesPage: React.FC = () => {
             placeholder={t('shortages.searchPlaceholder', 'Search shortages list...')}
             className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
           />
-        </div>
-
-        {/* Urgency filter */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs gap-0.5">
-          {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM'] as const).map((u) => (
-            <button
-              key={u}
-              onClick={() => setFilterUrgency(u)}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition ${filterUrgency === u ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              {u === 'ALL' ? t('common.all', 'All') : t(`urgency.${u.toLowerCase()}`, u)}
-            </button>
-          ))}
         </div>
 
         {/* Status filter */}
@@ -628,7 +516,7 @@ export const ShortagesPage: React.FC = () => {
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-3 px-4">{t('shortages.table.medicine', 'Medicine')}</th>
-                  <th className="py-3 px-4">{t('shortages.table.urgency', 'Urgency')}</th>
+                  
                   <th className="py-3 px-4">{t('inventory.table.quantity', 'Available Stock')}</th>
                   <th className="py-3 px-4">{t('shortages.table.needed', 'Needed Qty')}</th>
                   <th className="py-3 px-4">{t('shortages.table.status', 'Status')}</th>
@@ -639,7 +527,7 @@ export const ShortagesPage: React.FC = () => {
                 {items.map((item) => (
                   <tr
                     key={item._id}
-                    className={`hover:bg-slate-50/60 transition ${item.urgency === 'CRITICAL' ? 'bg-red-50/30' : ''}`}
+                    className="hover:bg-slate-50/60 transition"
                   >
                     {/* Medicine */}
                     <td className="py-3.5 px-4">
@@ -650,11 +538,6 @@ export const ShortagesPage: React.FC = () => {
                       {item.concentration && item.concentration !== item.medicineName && (
                         <div className="text-[10px] text-slate-400 mt-0.5 max-w-[200px] truncate">{item.concentration}</div>
                       )}
-                    </td>
-
-                    {/* Urgency */}
-                    <td className="py-3.5 px-4">
-                      <UrgencyBadge urgency={item.urgency} pulse />
                     </td>
 
                     {/* On shelf */}
@@ -742,7 +625,6 @@ export const ShortagesPage: React.FC = () => {
             drugClass: editItem.drugClass || '',
             currentQuantity: editItem.currentQuantity,
             neededQuantity: editItem.neededQuantity,
-            urgency: editItem.urgency,
           }}
           onClose={() => setEditItem(null)}
           onSave={handleEdit}

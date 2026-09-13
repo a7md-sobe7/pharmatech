@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { IPharmacyInventory } from '../types';
-import { Package, Search, Filter, AlertTriangle, CheckCircle, XCircle, Clock, MapPin, Tag } from 'lucide-react';
+import { Package, Search, Filter, AlertTriangle, CheckCircle, XCircle, Clock, MapPin, Tag, Plus, Minus } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const InventoryPage: React.FC = () => {
@@ -32,6 +32,28 @@ export const InventoryPage: React.FC = () => {
   useEffect(() => {
     fetchInventory();
   }, [statusFilter, search]);
+
+  const updateQuantity = async (id: string, currentAvailable: number, currentTotal: number, newAvailable: number) => {
+    if (newAvailable < 0) return;
+    try {
+      const diff = newAvailable - currentAvailable;
+      const newTotalQuantity = currentTotal + diff;
+      
+      setItems((prev) => prev.map(item => 
+        item._id === id 
+          ? { ...item, availableQuantity: newAvailable, quantity: newTotalQuantity } 
+          : item
+      ));
+      
+      const res: any = await apiClient.patch(`/inventory/${id}`, { quantity: newTotalQuantity });
+      if (!res.success) {
+        fetchInventory(); // revert on fail
+      }
+    } catch (err) {
+      console.error(err);
+      fetchInventory(); // revert on fail
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -131,10 +153,25 @@ export const InventoryPage: React.FC = () => {
                       {item.arabicName && <div className="text-[11px] text-slate-500 font-sans">{item.arabicName}</div>}
                     </td>
                     <td className="py-3.5 px-4">{getStatusBadge(isExp ? 'EXPIRED' : item.status)}</td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
-                      <span className={item.availableQuantity === 0 ? 'text-rose-600' : 'text-emerald-700'}>
-                        {item.availableQuantity} {t('common.units', 'units')}
-                      </span>
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => updateQuantity(item._id, item.availableQuantity, item.quantity, item.availableQuantity - 1)}
+                          disabled={item.availableQuantity <= 0}
+                          className="w-6 h-6 flex items-center justify-center rounded-md bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition disabled:opacity-50 disabled:hover:bg-slate-100 disabled:hover:text-slate-500"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <div className={`font-mono font-bold min-w-[50px] text-center text-sm ${item.availableQuantity === 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
+                          {item.availableQuantity}
+                        </div>
+                        <button
+                          onClick={() => updateQuantity(item._id, item.availableQuantity, item.quantity, item.availableQuantity + 1)}
+                          className="w-6 h-6 flex items-center justify-center rounded-md bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 font-mono font-semibold text-slate-700">
                       {item.price} {t('common.currency', 'EGP')}
