@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { INotification, INotificationPreference, NotificationType } from '../types';
 import { NotificationService } from '../services/notificationService';
-import { useAuth } from './AuthContext';
 
 interface NotificationContextType {
   unreadCount: number;
@@ -28,7 +27,6 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, token } = useAuth();
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<INotification[]>([]);
@@ -53,7 +51,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Refresh notifications and unread count
   const refreshNotifications = useCallback(async () => {
-    if (!token) return;
     try {
       const data = await NotificationService.getHistory({ limit: 30 });
       setNotifications(data.notifications || []);
@@ -61,32 +58,31 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch (err) {
       console.warn('[NotificationContext] Failed to fetch notification history:', err);
     }
-  }, [token]);
+  }, []);
 
   // Fetch preferences
   const fetchPrefs = useCallback(async () => {
-    if (!token) return;
     try {
       const prefs = await NotificationService.getPreferences();
       setPreferences(prefs);
     } catch (err) {
       console.warn('[NotificationContext] Failed to fetch preferences:', err);
     }
-  }, [token]);
+  }, []);
 
-  // Initial load on user/token change
+  // Initial load
   useEffect(() => {
     checkSubStatus();
     refreshNotifications();
     fetchPrefs();
 
-    // Poll every 30 seconds for background in-app counter sync
+    // Poll every 30 seconds
     const interval = setInterval(() => {
       refreshNotifications();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [user, token, checkSubStatus, refreshNotifications, fetchPrefs]);
+  }, [checkSubStatus, refreshNotifications, fetchPrefs]);
 
   const subscribeToPush = async (): Promise<boolean> => {
     setIsLoading(true);

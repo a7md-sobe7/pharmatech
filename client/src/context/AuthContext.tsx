@@ -15,16 +15,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<IUser | null>({
-    id: 'usr-pharmacist-001',
-    name: 'Dr. Sarah Ahmed, PharmD',
-    email: 'pharmacist@pharmamatch.ai',
-    role: 'PHARMACIST',
-    licenseNumber: 'LIC-PH-4421',
-    pharmacyName: 'Al-Shifa Community Pharmacy'
-  });
-  const [token, setToken] = useState<string | null>(localStorage.getItem('pharmamatch_token') || 'demo-token');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<IUser | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('pharmamatch_token'));
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -32,17 +25,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const res: any = await apiClient.get('/auth/me');
         if (res.success && res.data.user) {
           setUser(res.data.user);
+        } else {
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('pharmamatch_token');
         }
       } catch (err) {
-        // keep fallback
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('pharmamatch_token');
+      } finally {
+        setIsLoading(false);
       }
     };
     if (token) {
       fetchMe();
+    } else {
+      setIsLoading(false);
     }
   }, [token]);
 
-  const login = async (email: string, role: UserRole = 'PHARMACIST') => {
+  const login = async (email: string, role: UserRole = 'user') => {
     setIsLoading(true);
     try {
       const res: any = await apiClient.post('/auth/login', { email, password: 'Password@123' });
@@ -52,17 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('pharmamatch_token', res.data.token);
       }
     } catch (err) {
-      const demoUser: IUser = {
-        id: `demo-${role.toLowerCase()}`,
-        name: role === 'ADMIN' ? 'Chief Admin' : 'Dr. Sarah Ahmed, PharmD',
-        email,
-        role,
-        licenseNumber: 'LIC-2026-PH',
-        pharmacyName: 'Al-Shifa Community Pharmacy'
-      };
-      setUser(demoUser);
-      setToken('demo-token');
-      localStorage.setItem('pharmamatch_token', 'demo-token');
+      console.error('Login failed:', err);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +66,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updated: IUser = {
       ...user,
       role: newRole,
-      name: newRole === 'ADMIN' ? 'Chief Admin' : 'Dr. Sarah Ahmed, PharmD'
     };
     setUser(updated);
   };

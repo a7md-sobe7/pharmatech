@@ -11,7 +11,7 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
 
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<UserRole>('PHARMACIST');
+  const [role, setRole] = useState<UserRole>('user');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role');
-    if (roleParam === 'ADMIN' || roleParam === 'PHARMACIST') {
+    if (roleParam === 'ADMIN' || roleParam === 'user') {
       setRole(roleParam as UserRole);
     }
   }, [location]);
@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Access Role</label>
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => setRole('PHARMACIST')} className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${role === 'PHARMACIST' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-100 text-slate-500'}`}><Shield className="w-4 h-4" /> Pharmacist</button>
+                <button type="button" onClick={() => setRole('user')} className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${role === 'user' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-100 text-slate-500'}`}><Shield className="w-4 h-4" /> Pharmacist</button>
                 <button type="button" onClick={() => setRole('ADMIN')} className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${role === 'ADMIN' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-100 text-slate-500'}`}><Shield className="w-4 h-4" /> Admin</button>
               </div>
             </div>

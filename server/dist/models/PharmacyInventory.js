@@ -9,9 +9,9 @@ const PharmacyInventorySchema = new Schema({
     availableQuantity: { type: Number, required: true, default: 0, min: 0 },
     price: { type: Number, required: true, min: 0 },
     currency: { type: String, default: 'EGP' },
-    batchNumber: { type: String, required: true },
+    batchNumber: { type: String, default: 'N/A' },
     expirationDate: { type: Date, required: true, index: true },
-    storageLocation: { type: String, default: 'Shelf A-1' },
+    storageLocation: { type: String, default: 'N/A' },
     minimumStockLevel: { type: Number, default: 5 },
     status: {
         type: String,

@@ -18,6 +18,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import mongoose from 'mongoose';
+import { parse } from 'csv-parse/sync';
 import { DrugProduct } from '../models/DrugProduct.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -85,16 +86,50 @@ async function importDrugs() {
   await mongoose.connect(mongoUri);
   console.log('✅ Connected to Atlas.\n');
 
-  // Load the reference JSON (already parsed from CSV)
-  const jsonPath = path.resolve(__dirname, '../../../client/public/reference-db/egyptian-drugs.json');
-  if (!fs.existsSync(jsonPath)) {
-    console.error(`❌ Reference database not found at: ${jsonPath}`);
+  // Load the reference JSON and CSV
+  const jsonPath = path.resolve(__dirname, '../../../reference database/data/egyptian-drugs.json');
+  const csvPath = path.resolve(__dirname, '../../../reference database/data/egyptian-drugs.csv');
+
+  console.log('Loading JSON reference database...');
+  let rawJson: any[] = [];
+  if (fs.existsSync(jsonPath)) {
+    rawJson = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+    console.log(`✅ Loaded ${rawJson.length.toLocaleString()} drug entries from JSON.`);
+  } else {
+    console.warn(`⚠️ JSON reference database not found at: ${jsonPath}`);
+  }
+
+  console.log('Loading CSV reference database...');
+  let rawCsv: any[] = [];
+  if (fs.existsSync(csvPath)) {
+    const csvData = fs.readFileSync(csvPath, 'utf-8');
+    rawCsv = parse(csvData, { 
+      columns: true, 
+      skip_empty_lines: true,
+      relax_column_count: true,
+      relax_quotes: true
+    });
+    console.log(`✅ Loaded ${rawCsv.length.toLocaleString()} drug entries from CSV.`);
+  } else {
+    console.warn(`⚠️ CSV reference database not found at: ${csvPath}`);
+  }
+
+  if (rawJson.length === 0 && rawCsv.length === 0) {
+    console.error(`❌ No reference databases found.`);
     process.exit(1);
   }
 
-  console.log('Loading Egyptian drugs reference database...');
-  const raw: any[] = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
-  console.log(`✅ Loaded ${raw.length.toLocaleString()} drug entries.\n`);
+  // Merge and deduplicate
+  const mergedMap = new Map();
+  for (const item of [...rawJson, ...rawCsv]) {
+    const key = item.commercial_name_en?.trim();
+    if (key && !mergedMap.has(key)) {
+      mergedMap.set(key, item);
+    }
+  }
+
+  const raw: any[] = Array.from(mergedMap.values());
+  console.log(`✅ Merged and deduplicated to ${raw.length.toLocaleString()} drug entries.\n`);
 
   // Check existing count
   const existingCount = await DrugProduct.countDocuments();

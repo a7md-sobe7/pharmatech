@@ -1,9 +1,44 @@
+import mongoose from 'mongoose';
 import { PharmacyInventory } from '../../models/PharmacyInventory.js';
+import { Shortage } from '../../models/Shortage.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { logAudit } from '../../middleware/audit.js';
 import { PushNotificationService } from '../notifications/pushNotificationService.js';
 import { NotificationTemplates } from '../notifications/notificationTemplates.js';
 export class InventoryController {
+    static async handleShortage(item) {
+        const minStock = item.minimumStockLevel || 5;
+        const currentQty = item.availableQuantity;
+        if (currentQty < minStock) {
+            const neededQuantity = minStock - currentQty;
+            const existingShortage = await Shortage.findOne({
+                medicineName: item.productName,
+                status: { $in: ['PENDING', 'ORDERED'] }
+            });
+            if (existingShortage) {
+                existingShortage.currentQuantity = currentQty;
+                existingShortage.neededQuantity = neededQuantity;
+                await existingShortage.save();
+            }
+            else {
+                await Shortage.create({
+                    medicineName: item.productName,
+                    medicineNameAr: item.arabicName,
+                    currentQuantity: currentQty,
+                    neededQuantity: neededQuantity,
+                    status: 'PENDING',
+                    notes: 'Auto-generated from inventory threshold'
+                });
+            }
+        }
+        else {
+            // Quantity is now sufficient. Remove any active shortages for this medicine from the DB.
+            await Shortage.deleteMany({
+                medicineName: item.productName,
+                status: { $in: ['PENDING', 'ORDERED'] }
+            });
+        }
+    }
     /**
      * List inventory items with filtering and pagination
      */
@@ -138,6 +173,7 @@ export class InventoryController {
                     data: { url: '/inventory' }
                 }).catch(err => console.error('[Inventory] Admin update push error:', err));
             }
+            await InventoryController.handleShortage(item);
             await logAudit('UPDATE_INVENTORY', req, String(item._id), {
                 productName: item.productName,
                 newQuantity: item.quantity,
@@ -147,6 +183,55 @@ export class InventoryController {
                 success: true,
                 message: 'Inventory record updated successfully.',
                 data: { item }
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    /**
+     * Create new inventory item
+     */
+    static async createInventoryItem(req, res, next) {
+        try {
+            const { productName, arabicName, quantity, price, expirationDate, minimumStockLevel, drugProductId } = req.body;
+            if (!productName || quantity === undefined || price === undefined || !expirationDate) {
+                throw new AppError('Missing required fields.', 400, 'VALIDATION_ERROR');
+            }
+            const item = new PharmacyInventory({
+                drugProductId: drugProductId || new mongoose.Types.ObjectId().toString(),
+                productName,
+                arabicName,
+                quantity: Number(quantity),
+                price: Number(price),
+                expirationDate: new Date(expirationDate),
+                minimumStockLevel: Number(minimumStockLevel || 5)
+            });
+            await item.save();
+            await InventoryController.handleShortage(item);
+            res.status(201).json({
+                success: true,
+                message: 'Inventory item created successfully.',
+                data: { item }
+            });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    /**
+     * Delete an inventory item
+     */
+    static async deleteInventoryItem(req, res, next) {
+        try {
+            const { id } = req.params;
+            const item = await PharmacyInventory.findByIdAndDelete(id);
+            if (!item) {
+                throw new AppError('Inventory record not found.', 404, 'INVENTORY_NOT_FOUND');
+            }
+            res.json({
+                success: true,
+                message: 'Inventory item deleted successfully.'
             });
         }
         catch (error) {

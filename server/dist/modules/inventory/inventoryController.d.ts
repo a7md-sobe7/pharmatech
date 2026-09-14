@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 export declare class InventoryController {
+    private static handleShortage;
     /**
      * List inventory items with filtering and pagination
      */
@@ -12,4 +13,12 @@ export declare class InventoryController {
      * Update stock or batch details
      */
     static updateInventoryItem(req: Request, res: Response, next: NextFunction): Promise<void>;
+    /**
+     * Create new inventory item
+     */
+    static createInventoryItem(req: Request, res: Response, next: NextFunction): Promise<void>;
+    /**
+     * Delete an inventory item
+     */
+    static deleteInventoryItem(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

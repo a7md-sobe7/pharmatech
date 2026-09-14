@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'PHARMACIST' | 'STAFF' | 'MORNING_SHIFT' | 'NIGHT_SHIFT';
+export type UserRole = 'ADMIN' | 'user' | 'STAFF' | 'MORNING_SHIFT' | 'NIGHT_SHIFT';
 export type InventoryStatus = 'AVAILABLE' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'EXPIRED' | 'DISCONTINUED';
 export type SimilarityLevel = 'VERY_HIGH' | 'HIGH' | 'MODERATE' | 'LOW' | 'NOT_SIMILAR';
 

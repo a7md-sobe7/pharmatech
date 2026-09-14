@@ -4,9 +4,10 @@ import { apiClient } from '../api/client';
 import {
   Package, AlertTriangle, CheckCircle2, XCircle,
   Search, ArrowRight, Pill, Activity,
-  Plus, Clock, Flame, Check
+  Plus, Clock, Save, Sliders
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { ISimilarityConfig } from '../types';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,20 +24,32 @@ export const DashboardPage: React.FC = () => {
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [shortageStats, setShortageStats] = useState<any>(null);
+  const [config, setConfig] = useState<ISimilarityConfig>({
+    primaryIngredientWeight: 0.60,
+    strengthWeight: 0.20,
+    dosageFormWeight: 0.10,
+    secondaryIngredientWeight: 0.10,
+    thresholds: { veryHigh: 90, high: 75, moderate: 50, low: 25 },
+    version: '1.0.0'
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, logsRes, shortagesRes, shortageStatsRes]: any = await Promise.all([
+        const [statsRes, logsRes, shortagesRes, shortageStatsRes, configRes]: any = await Promise.all([
           apiClient.get('/inventory/stats'),
           apiClient.get('/audit/logs?limit=5'),
           apiClient.get('/shortages?limit=6'),
           apiClient.get('/shortages/stats'),
+          apiClient.get('/similarity/config'),
         ]);
         if (statsRes.success) setStats(statsRes.data);
         if (logsRes.success) setRecentLogs(logsRes.data.logs || []);
         if (shortagesRes.success) setShortages(shortagesRes.data.items || []);
         if (shortageStatsRes.success) setShortageStats(shortageStatsRes.data);
+        if (configRes.success && configRes.data.config) setConfig(configRes.data.config);
       } catch (err) {
         // use defaults
       }
@@ -48,6 +61,31 @@ export const DashboardPage: React.FC = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const totalWeight = Number((
+    config.primaryIngredientWeight +
+    config.strengthWeight +
+    config.dosageFormWeight +
+    config.secondaryIngredientWeight
+  ).toFixed(2));
+  const isWeightValid = Math.abs(totalWeight - 1.0) < 0.001;
+
+  const handleSaveConfig = async () => {
+    if (!isWeightValid) return;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      const res: any = await apiClient.patch('/similarity/config', config);
+      if (res.success) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -168,7 +206,75 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          WIDGET 4: Recent Activity (spans 2 cols)
+          WIDGET 4: Similarity Algorithm Weight Configuration (full width)
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-blue-600" />
+            <h2 className="font-bold text-slate-800 text-sm">
+              {t('admin.weights.title', 'Similarity Algorithm Weight Configuration')}
+            </h2>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">Engine Version: {config.version}</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            { label: t('admin.weights.primary', 'Primary Active Ingredient Match'), key: 'primaryIngredientWeight' as const, min: 0.40, max: 0.90, desc: 'Strongest medical compatibility factor. Candidates without matching primary ingredient fail match.' },
+            { label: t('admin.weights.strength', 'Strength & Concentration Match'), key: 'strengthWeight' as const, min: 0.05, max: 0.40, desc: 'Proportional proximity ratio comparing normalized base values (mg, g, IU).' },
+            { label: t('admin.weights.form', 'Dosage Form Compatibility'), key: 'dosageFormWeight' as const, min: 0.05, max: 0.30, desc: 'Evaluates form family (Tablet vs Capsule: 80%, Tablet vs Topical: 0%).' },
+            { label: t('admin.weights.secondary', 'Secondary / Inactive Ingredients'), key: 'secondaryIngredientWeight' as const, min: 0.05, max: 0.30, desc: 'Measures intersection over union across non-primary vitamins, minerals, and buffers.' },
+          ].map(({ label, key, min, max, desc }) => (
+            <div key={key} className="space-y-1.5">
+              <div className="flex justify-between text-xs font-semibold text-slate-800">
+                <span>{label}</span>
+                <span className="text-blue-600 font-mono">{Math.round(config[key] * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={min}
+                max={max}
+                step="0.05"
+                value={config[key]}
+                onChange={(e) => setConfig({ ...config, [key]: parseFloat(e.target.value) })}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              />
+              <p className="text-[11px] text-slate-500">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-semibold text-slate-600">Total Weight:</span>
+            <span className={`font-mono font-bold px-2 py-0.5 rounded text-xs ${
+              isWeightValid ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+            }`}>
+              {Math.round(totalWeight * 100)}%
+            </span>
+            {!isWeightValid && <span className="text-rose-600">(Must equal 100%)</span>}
+          </div>
+          <div className="flex items-center gap-3">
+            {saveSuccess && (
+              <span className="text-emerald-600 text-xs font-semibold flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Saved!
+              </span>
+            )}
+            <button
+              onClick={handleSaveConfig}
+              disabled={!isWeightValid || isSaving}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>{isSaving ? 'Saving…' : 'Save Changes'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          WIDGET 5: Recent Activity (spans 2 cols)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="lg:col-span-2 bento-card">
         <div className="flex items-center justify-between mb-4">
